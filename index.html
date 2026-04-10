@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#642A90">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Vivo - Fretados</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --vivo-purple: #642A90;
+            --vivo-purple-light: #7b39ad;
+            --vivo-green: #99CC33;
+            --bg: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --text-main: #333;
+            --text-past: #BDBDBD;
+            --radius: 16px;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            overflow: hidden;
+        }
+        
+        .header { 
+            background: var(--vivo-purple); 
+            color: white; 
+            padding: 20px 15px 15px; 
+            text-align: center; 
+            font-weight: 600; 
+            border-radius: 0 0 var(--radius) var(--radius);
+            box-shadow: var(--shadow);
+            z-index: 10;
+        }
+
+        .filter-panel { padding: 15px 15px 10px; display: flex; flex-direction: column; gap: 12px; }
+        .row { display: flex; gap: 10px; }
+        .row > * { flex: 1; }
+
+        select, input[type="date"] { 
+            appearance: none;
+            background: var(--card-bg);
+            border: 1.5px solid #E0E0E0;
+            border-radius: 12px;
+            padding: 0 15px;
+            height: 52px;
+            font-size: 0.95rem;
+            outline: none;
+            color: var(--text-main);
+        }
+
+        .feriado-toggle { 
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--card-bg);
+            border: 1.5px solid #E0E0E0;
+            border-radius: 12px;
+            padding: 0 15px;
+            height: 52px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--vivo-purple);
+        }
+
+        .feriado-toggle input { 
+            width: 40px; height: 22px; appearance: none;
+            background: #DDD; border-radius: 20px; position: relative; transition: .3s;
+        }
+        .feriado-toggle input:checked { background: var(--vivo-green); }
+        .feriado-toggle input::before {
+            content: ''; position: absolute; width: 18px; height: 18px;
+            border-radius: 50%; top: 2px; left: 2px; background: white; transition: .3s;
+        }
+        .feriado-toggle input:checked::before { transform: translateX(18px); }
+
+        .timer-container { 
+            margin: 0 15px 15px;
+            background: linear-gradient(135deg, var(--vivo-purple), var(--vivo-purple-light)); 
+            color: white; padding: 20px; border-radius: var(--radius);
+            text-align: center; box-shadow: 0 8px 20px rgba(100, 42, 144, 0.3);
+            transition: all 0.4s ease;
+        }
+
+        .timer-container.modo-real {
+            background: linear-gradient(135deg, #82ad2b, var(--vivo-green)) !important;
+            box-shadow: 0 8px 20px rgba(153, 204, 51, 0.4) !important;
+        }
+
+        .timer-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; }
+        #data-hora-info { font-size: 1rem; font-weight: 600; margin-top: 5px; display: block; opacity: 0.9; }
+        #countdown { font-size: 2.8rem; font-weight: 800; display: block; margin: 2px 0; min-height: 3.4rem; }
+        #info-dia { background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; }
+
+        .scroll-area { flex: 1; overflow-y: auto; padding: 0 15px 30px; scroll-behavior: smooth; }
+
+        .horario-card { 
+            background: var(--card-bg); 
+            margin-bottom: 10px; padding: 18px; border-radius: 14px; 
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.3rem; font-weight: 700; 
+            border: 1px solid rgba(0,0,0,0.05);
+            color: var(--text-main); transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .horario-card.passado { color: var(--text-past) !important; font-weight: 400 !important; background: #fdfdfd !important; border: 1px solid #eee !important; }
+        .horario-card.selecionado { border: 2.5px solid var(--vivo-purple); background: #f3ebff; color: var(--vivo-purple); }
+        .horario-card.proximo-fretado-sempre { background: var(--vivo-green) !important; color: white !important; border: none !important; z-index: 2; font-weight: 800 !important; }
+        .badge-status { position: absolute; right: 15px; font-size: 0.6rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="header">Vivo Fretados</div>
+
+<div class="filter-panel">
+    <div class="row">
+        <select id="select-partida" onchange="resetECarregar()"></select>
+        <select id="select-destino" onchange="resetECarregar()"></select>
+    </div>
+    <div class="row">
+        <input type="date" id="input-data" onchange="validarData()">
+        <label class="feriado-toggle">FERIADO <input type="checkbox" id="check-feriado" onchange="resetECarregar()"></label>
+    </div>
+</div>
+
+<div id="timer-box" class="timer-container">
+    <div class="timer-label" id="timer-status">Próximo Horário:</div>
+    <span id="data-hora-info"></span>
+    <span id="countdown">00:00:00</span>
+    <div id="info-dia">---</div>
+</div>
+
+<div class="scroll-area" id="lista-horarios"></div>
+
+<script>
+    const db = {
+        "BORBA GATO": { "TELEFONICA": { 
+            "Dia Útil": ["07:30","07:40","07:50","08:00","08:10","08:20","08:30","08:40","08:50","09:00","09:10","09:20","09:30","09:40","09:50","10:10","10:25","10:45","11:05","11:25","11:45","12:05","12:25","12:45","13:05","13:25","13:45","14:05","14:30"],
+            "Sábado": ["07:30","07:50","08:10","08:30","08:50","09:10","09:30","09:50","10:10","10:25","10:45","11:05","11:25","11:45","12:05","12:25","12:45","14:05","14:20"],
+            "Domingo": ["07:30","07:45","08:00","08:15","08:30","08:45","09:00","09:15","09:30","09:50","10:50","11:30","11:45","12:00","12:25"],
+            "Feriado": ["07:30","07:50","08:10","08:30","08:50","09:10","09:30","09:50","10:10","10:45","11:05","11:45","12:05","12:25","12:45","14:05","14:30"]
+        }},
+        "GRANJA JULIETA": { "TELEFONICA": { 
+            "Dia Útil": ["07:30","07:40","07:50","08:00","08:10","08:20","08:30","08:40","08:50","09:00","09:10","09:20","09:30","09:40","09:50","10:00","10:10","10:25","10:40","10:50","11:00","11:10","11:20","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:40","13:55","14:10","14:30"],
+            "Sábado": ["07:30","07:45","08:00","08:15","08:30","08:45","09:00","09:15","09:30","09:45","10:10","10:40","10:50","11:25","11:50","12:10","12:30","12:50","13:50","14:00","14:10","14:30"],
+            "Domingo": ["07:30","07:45","08:00","08:15","08:30","08:45","09:00","09:15","09:30","09:50","10:50","11:30","11:45","12:00"],
+            "Feriado": ["07:30","07:45","08:00","08:15","08:30","08:45","09:00","09:15","09:30","09:45","10:10","10:35","10:50","11:25","11:50","12:10","12:30","12:45","13:50","14:10","14:30"]
+        }},
+        "TELEFONICA": { 
+            "BORBA GATO": { 
+                "Dia Útil": ["14:25","14:45","15:05","15:25","15:45","16:05","16:25","16:45","17:05","17:25","17:45","18:05","18:25","18:45","19:05","19:25","19:45","20:05","20:25","20:45","21:05","21:25","22:05"],
+                "Sábado": ["14:30","14:45","15:05","15:25","15:45","16:05","16:25","17:05","17:25","17:45","18:05","18:25","18:45","19:05","19:25","19:45","20:05","20:45","21:05"],
+                "Domingo": ["14:05","14:25","14:45","15:05","15:25","16:05","16:25","16:40","17:05","17:25","18:05","18:25","19:05"],
+                "Feriado": ["14:25","14:45","15:25","15:45","16:05","16:25","17:05","17:25","17:45","18:05","18:25","18:45","19:05","19:25","19:45","20:05","20:45","21:05"]
+            },
+            "GRANJA JULIETA": { 
+                "Dia Útil": ["14:25","14:45","15:05","15:25","15:40","15:55","16:05","16:25","17:05","17:25","17:45","17:55","18:05","18:15","18:25","18:35","18:45","18:55","19:05","19:25","19:45","20:05","20:35","20:50","21:05","21:25","22:05"],
+                "Sábado": ["14:25","14:45","15:05","15:25","15:35","15:45","16:05","16:25","16:45","17:05","17:25","18:05","18:25","18:45","19:05","19:25","19:45","20:05","20:25","20:45","21:05"],
+                "Domingo": ["14:05","14:25","14:45","15:05","16:05","16:25","16:40","17:05","17:25","18:05","18:25","19:05"],
+                "Feriado": ["14:25","14:45","15:05","15:25","15:45","16:05","16:25","16:45","17:05","17:25","17:45","18:05","18:25","18:45","19:05","19:25","19:45","20:05","20:25","20:45","21:05"]
+            }
+        }
+    };
+
+    const feriadosFixos = ["01-01", "01-25", "04-21", "05-01", "07-09", "09-07", "10-12", "11-02", "11-15", "11-20", "25-12"];
+    let horarioSelecionadoManual = null;
+    let ultimoHorarioAlvo = null; 
+    let vibrouUmMinuto = false;
+    let vibrouChegada = false;
+    let ultimoMinutoRenderizado = -1;
+
+    function iniciar() {
+        const pSelReal = document.getElementById('select-partida');
+        Object.keys(db).forEach(p => pSelReal.options.add(new Option(`▲ ${p}`, p)));
+        pSelReal.value = localStorage.getItem('partida') || "BORBA GATO";
+        atualizarDestinos();
+        resetarDataHoje();
+    }
+
+    function resetECarregar() {
+        horarioSelecionadoManual = null; 
+        ultimoHorarioAlvo = null;
+        limparVibracoes();
+        atualizarDestinos();
+        salvarPreferencias();
+    }
+
+    function validarData() {
+        horarioSelecionadoManual = null;
+        ultimoHorarioAlvo = null;
+        limparVibracoes();
+        if (!document.getElementById('input-data').value) resetarDataHoje();
+        else ajustarDiaPorData();
+    }
+
+    function limparVibracoes() { vibrouUmMinuto = false; vibrouChegada = false; }
+
+    function resetarDataHoje() {
+        const hoje = new Date();
+        const dataLocal = new Date(hoje.getTime() - (hoje.getTimezoneOffset() * 60000));
+        document.getElementById('input-data').value = dataLocal.toISOString().split('T')[0];
+        ajustarDiaPorData();
+    }
+
+    function salvarPreferencias() {
+        localStorage.setItem('partida', document.getElementById('select-partida').value);
+        localStorage.setItem('destino', document.getElementById('select-destino').value);
+    }
+
+    function atualizarDestinos() {
+        const partida = document.getElementById('select-partida').value;
+        const dSel = document.getElementById('select-destino');
+        const dAtual = dSel.value;
+        dSel.innerHTML = ''; 
+        if (partida && db[partida]) {
+            const destinos = Object.keys(db[partida]);
+            destinos.forEach(d => dSel.options.add(new Option(`▼ ${d}`, d)));
+            dSel.value = destinos.includes(dAtual) ? dAtual : dSel.options[0].value;
+        }
+        gerarLista();
+    }
+
+    function ajustarDiaPorData() {
+        const dataInput = document.getElementById('input-data').value;
+        const diaMes = dataInput.split('-').slice(1).reverse().join('-');
+        document.getElementById('check-feriado').checked = feriadosFixos.includes(diaMes);
+        gerarLista();
+    }
+
+    function gerarLista() {
+        const partida = document.getElementById('select-partida').value;
+        const destino = document.getElementById('select-destino').value;
+        const dataInput = document.getElementById('input-data').value;
+        const isFeriado = document.getElementById('check-feriado').checked;
+        const listaDiv = document.getElementById('lista-horarios');
+        const timerBox = document.getElementById('timer-box');
+        
+        const agoraOriginal = new Date();
+        const agoraLimpo = new Date(agoraOriginal.getFullYear(), agoraOriginal.getMonth(), agoraOriginal.getDate(), agoraOriginal.getHours(), agoraOriginal.getMinutes(), 0, 0);
+        ultimoMinutoRenderizado = agoraOriginal.getMinutes();
+
+        const dataObj = new Date(dataInput + "T00:00:00");
+        let filtroDia = isFeriado ? "Feriado" : (dataObj.getDay() === 0 ? "Domingo" : (dataObj.getDay() === 6 ? "Sábado" : "Dia Útil"));
+        document.getElementById('info-dia').innerText = filtroDia;
+
+        const horarios = db[partida][destino][filtroDia] || [];
+        listaDiv.innerHTML = "";
+        
+        const hojeStr = new Date(agoraOriginal.getTime() - (agoraOriginal.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        const ehHoje = (dataInput === hojeStr);
+
+        let proximoAuto = null;
+        if (ehHoje) {
+            horarios.forEach(h => {
+                const [hora, min] = h.split(':');
+                const hV = new Date(agoraOriginal.getFullYear(), agoraOriginal.getMonth(), agoraOriginal.getDate(), parseInt(hora), parseInt(min), 0, 0);
+                if (hV > agoraLimpo && !proximoAuto) proximoAuto = h;
+            });
+        }
+
+        const alvoFinal = (ehHoje && !horarioSelecionadoManual) ? proximoAuto : horarioSelecionadoManual;
+
+        const infoDataHora = document.getElementById('data-hora-info');
+        const diaMesFormatado = dataInput.split('-').slice(1).reverse().join('/');
+
+        // AJUSTE DO TIMER: Se o selecionado for o próximo real, fica verde.
+        if (ehHoje) {
+            if (horarioSelecionadoManual && horarioSelecionadoManual !== proximoAuto) {
+                timerBox.classList.remove('modo-real');
+                document.getElementById('timer-status').innerText = "Horário Selecionado:";
+                infoDataHora.innerText = `${diaMesFormatado} às ${horarioSelecionadoManual}`;
+            } else {
+                timerBox.classList.add('modo-real');
+                document.getElementById('timer-status').innerText = "Próximo Horário:";
+                infoDataHora.innerText = ""; 
+            }
+        } else {
+            timerBox.classList.remove('modo-real');
+            document.getElementById('timer-status').innerText = "Horário Selecionado:";
+            infoDataHora.innerText = alvoFinal ? `${diaMesFormatado} às ${alvoFinal}` : `${diaMesFormatado}`;
+        }
+
+        horarios.forEach(h => {
+            const card = document.createElement('div');
+            card.className = 'horario-card';
+            card.innerText = h;
+
+            const [hora, min] = h.split(':');
+            const hV = new Date(agoraOriginal.getFullYear(), agoraOriginal.getMonth(), agoraOriginal.getDate(), parseInt(hora), parseInt(min), 0, 0);
+
+            if (ehHoje && hV <= agoraLimpo) {
+                card.classList.add('passado');
+            }
+
+            if (h === alvoFinal && ehHoje && hV > agoraLimpo) {
+                card.classList.remove('passado');
+                card.classList.add('proximo-fretado-sempre');
+                const badge = document.createElement('span');
+                badge.className = 'badge-status';
+                // SE o manual for o próximo real, escreve PRÓXIMO em vez de SELECIONADO
+                badge.innerText = (h === proximoAuto) ? 'PRÓXIMO' : 'SELECIONADO';
+                card.appendChild(badge);
+                
+                if (h !== ultimoHorarioAlvo) {
+                    ultimoHorarioAlvo = h;
+                    setTimeout(() => card.scrollIntoView({ block: 'start' }), 200);
+                }
+            } else if (!ehHoje && h === horarioSelecionadoManual) {
+                card.classList.add('proximo-fretado-sempre');
+                const badge = document.createElement('span');
+                badge.className = 'badge-status';
+                badge.innerText = 'SELECIONADO';
+                card.appendChild(badge);
+            }
+
+            if (horarioSelecionadoManual && h === horarioSelecionadoManual) {
+                card.classList.add('selecionado');
+            }
+
+            card.onclick = () => {
+                if (h === proximoAuto || horarioSelecionadoManual === h) {
+                    horarioSelecionadoManual = null;
+                } else {
+                    horarioSelecionadoManual = h;
+                }
+                limparVibracoes();
+                ultimoHorarioAlvo = null; 
+                gerarLista();
+            };
+            listaDiv.appendChild(card);
+        });
+
+        const dataSelecionadaLocal = new Date(dataObj.getFullYear(), dataObj.getMonth(), dataObj.getDate());
+        const hojeLocal = new Date(agoraOriginal.getFullYear(), agoraOriginal.getMonth(), agoraOriginal.getDate());
+        const diffDias = Math.round((dataSelecionadaLocal - hojeLocal) / (1000 * 3600 * 24));
+
+        iniciarContagem(alvoFinal, diffDias);
+    }
+
+    let timerInterval;
+    function iniciarContagem(hAlvo, diffDias) {
+        clearInterval(timerInterval);
+        const display = document.getElementById('countdown');
+
+        if (diffDias !== 0) {
+            if (diffDias === 1) display.innerText = "Amanhã";
+            else if (diffDias === -1) display.innerText = "Ontem";
+            else if (diffDias > 1) display.innerText = `Em ${diffDias} dias`;
+            else display.innerText = `Há ${Math.abs(diffDias)} dias`;
+            return;
+        }
+
+        if (!hAlvo) { display.innerText = "Encerrado"; return; }
+
+        const [h, m] = hAlvo.split(':');
+        const alvo = new Date(); alvo.setHours(parseInt(h), parseInt(m), 0, 0);
+
+        const tick = () => {
+            const agora = new Date();
+            const diff = alvo - agora;
+
+            if (agora.getMinutes() !== ultimoMinutoRenderizado) {
+                gerarLista();
+                return;
+            }
+
+            if (diff <= 60000 && diff > 59000 && !vibrouUmMinuto) {
+                if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+                vibrouUmMinuto = true;
+            }
+
+            if (diff <= 0) {
+                display.innerText = "00:00:00";
+                if (navigator.vibrate && !vibrouChegada) {
+                    navigator.vibrate(1000);
+                    vibrouChegada = true;
+                }
+                clearInterval(timerInterval);
+                horarioSelecionadoManual = null;
+                ultimoHorarioAlvo = null;
+                setTimeout(gerarLista, 1000);
+                return;
+            }
+
+            const hrs = Math.floor(diff / 3600000).toString().padStart(2, '0');
+            const min = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+            const sec = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+            display.innerText = `${hrs}:${min}:${sec}`;
+        };
+
+        tick();
+        timerInterval = setInterval(tick, 1000);
+    }
+
+    window.onload = iniciar;
+</script>
+</body>
+</html>

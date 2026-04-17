@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#642A90">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Vivo - Fretados</title>
-    <link rel="icon" type="image/png" href="favicon.png">
+	<link rel="icon" type="image/png" href="favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -31,23 +31,67 @@
             display: flex; 
             flex-direction: column; 
             height: 100vh; 
+            height: 100dvh; 
             overflow: hidden;
         }
         
         .header { 
             background: var(--vivo-purple); 
             color: white; 
-            padding: 20px 15px 15px; 
+            padding: env(safe-area-inset-top, 20px) 15px 15px; 
             text-align: center; 
-            font-weight: 600; 
+            font-size: 1.2rem;
+            font-weight: 800; 
             border-radius: 0 0 var(--radius) var(--radius);
             box-shadow: var(--shadow);
-            z-index: 10;
+            z-index: 100;
+            flex-shrink: 0;
         }
 
-        .filter-panel { padding: 15px 15px 10px; display: flex; flex-direction: column; gap: 12px; }
+        .filter-panel { 
+            padding: 15px 15px 10px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            flex-shrink: 0;
+        }
+
+        .row-overlap {
+            display: flex;
+            gap: 10px;
+            position: relative; 
+            align-items: center;
+        }
+
+        .row-overlap > select {
+            flex: 1;
+            width: 50%; 
+        }
+
+        .btn-inverter {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%); 
+            background: var(--card-bg);
+            border: 1.5px solid #E0E0E0;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: var(--vivo-purple);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 10; 
+            transition: all 0.2s;
+        }
+
+        .btn-inverter:active { transform: translate(-50%, -50%) scale(0.9); background: #f0f0f0; }
+
         .row { display: flex; gap: 10px; }
-        .row > * { flex: 1; }
 
         select, input[type="date"] { 
             appearance: none;
@@ -59,6 +103,7 @@
             font-size: 0.95rem;
             outline: none;
             color: var(--text-main);
+            width: 100%;
         }
 
         .feriado-toggle { 
@@ -71,6 +116,7 @@
             font-weight: 600;
             font-size: 0.85rem;
             color: var(--vivo-purple);
+            flex: 1;
         }
 
         .feriado-toggle input { 
@@ -90,6 +136,7 @@
             color: white; padding: 20px; border-radius: var(--radius);
             text-align: center; box-shadow: 0 8px 20px rgba(100, 42, 144, 0.3);
             transition: all 0.4s ease;
+            flex-shrink: 0;
         }
 
         .timer-container.modo-real {
@@ -119,19 +166,98 @@
         .horario-card.selecionado { border: 2.5px solid var(--vivo-purple); background: #f3ebff; color: var(--vivo-purple); }
         .horario-card.proximo-fretado-sempre { background: var(--vivo-green) !important; color: white !important; border: none !important; z-index: 2; font-weight: 800 !important; }
         .badge-status { position: absolute; right: 15px; font-size: 0.6rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; }
+
+        /* --- NOVOS ESTILOS: COMPARTILHAMENTO --- */
+        .btn-share-float {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 56px;
+            height: 56px;
+            background: var(--vivo-purple);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 1000;
+            border: none;
+            transition: transform 0.2s;
+        }
+        .btn-share-float:active { transform: scale(0.9); }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            width: 85%;
+            max-width: 320px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .qr-code-img {
+            width: 180px;
+            height: 180px;
+            margin: 10px auto 20px;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 12px;
+            display: block;
+        }
+
+        .btn-modal {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            margin-top: 10px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .btn-copy { background: var(--vivo-purple); color: white; }
+        .btn-close { background: #f5f5f5; color: #666; }
+
+        #copy-toast {
+            color: var(--vivo-green);
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-top: 8px;
+            height: 16px;
+            visibility: hidden;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
 
-<div class="header">Vivo Fretados</div>
+<div class="header">Vivo ⏱️ Transporte</div>
 
 <div class="filter-panel">
-    <div class="row">
+    <div class="row-overlap">
         <select id="select-partida" onchange="resetECarregar()"></select>
+        <button class="btn-inverter" onclick="inverterSelecao()">⇆</button>
         <select id="select-destino" onchange="resetECarregar()"></select>
     </div>
     <div class="row">
-        <input type="date" id="input-data" onchange="validarData()">
+        <input type="date" id="input-data" onchange="validarData()" style="flex: 1;">
         <label class="feriado-toggle">FERIADO <input type="checkbox" id="check-feriado" onchange="resetECarregar()"></label>
     </div>
 </div>
@@ -144,6 +270,22 @@
 </div>
 
 <div class="scroll-area" id="lista-horarios"></div>
+
+<button class="btn-share-float" onclick="toggleModal(true)">🔗</button>
+
+<div id="share-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 style="margin:0; color:var(--vivo-purple); font-weight:800;">Vivo ⏱️ Transporte</h3>
+        <p style="font-size:0.8rem; color:#666; margin: 5px 0 15px;">Compartilhe os horários</p>
+        
+        <img src="qrcode.png" alt="QR Code" class="qr-code-img">
+        
+        <button class="btn-modal btn-copy" onclick="copiarLink()">Copiar Link</button>
+        <div id="copy-toast">link copiado</div>
+        
+        <button class="btn-modal btn-close" onclick="toggleModal(false)">Fechar</button>
+    </div>
+</div>
 
 <script>
     const db = {
@@ -178,6 +320,7 @@
     const feriadosFixos = ["01-01", "01-25", "04-21", "05-01", "07-09", "09-07", "10-12", "11-02", "11-15", "11-20", "25-12"];
     let horarioSelecionadoManual = null;
     let ultimoHorarioAlvo = null; 
+    let vibrouTresMinutos = false;
     let vibrouUmMinuto = false;
     let vibrouChegada = false;
     let ultimoMinutoRenderizado = -1;
@@ -185,9 +328,35 @@
     function iniciar() {
         const pSelReal = document.getElementById('select-partida');
         Object.keys(db).forEach(p => pSelReal.options.add(new Option(`▲ ${p}`, p)));
-        pSelReal.value = localStorage.getItem('partida') || "BORBA GATO";
-        atualizarDestinos();
+        
+        const agora = new Date();
+        const horaMinutoAtual = (agora.getHours() * 100) + agora.getMinutes();
+        const limite = 1430; 
+        
+        let localidadePreferida = localStorage.getItem('localidade_base') || "BORBA GATO";
+        
+        if (horaMinutoAtual < limite) {
+            pSelReal.value = localidadePreferida;
+            atualizarDestinos();
+            document.getElementById('select-destino').value = "TELEFONICA";
+        } else {
+            pSelReal.value = "TELEFONICA";
+            atualizarDestinos();
+            document.getElementById('select-destino').value = localidadePreferida;
+        }
+
         resetarDataHoje();
+    }
+
+    function inverterSelecao() {
+        const pSel = document.getElementById('select-partida');
+        const dSel = document.getElementById('select-destino');
+        const pValor = pSel.value;
+        const dValor = dSel.value;
+        pSel.value = dValor;
+        atualizarDestinos();
+        dSel.value = pValor;
+        resetECarregar();
     }
 
     function resetECarregar() {
@@ -206,7 +375,11 @@
         else ajustarDiaPorData();
     }
 
-    function limparVibracoes() { vibrouUmMinuto = false; vibrouChegada = false; }
+    function limparVibracoes() { 
+        vibrouTresMinutos = false; 
+        vibrouUmMinuto = false; 
+        vibrouChegada = false; 
+    }
 
     function resetarDataHoje() {
         const hoje = new Date();
@@ -216,8 +389,10 @@
     }
 
     function salvarPreferencias() {
-        localStorage.setItem('partida', document.getElementById('select-partida').value);
-        localStorage.setItem('destino', document.getElementById('select-destino').value);
+        const p = document.getElementById('select-partida').value;
+        const d = document.getElementById('select-destino').value;
+        const localidade = (p !== "TELEFONICA") ? p : d;
+        localStorage.setItem('localidade_base', localidade);
     }
 
     function atualizarDestinos() {
@@ -250,6 +425,12 @@
         
         const agoraOriginal = new Date();
         const agoraLimpo = new Date(agoraOriginal.getFullYear(), agoraOriginal.getMonth(), agoraOriginal.getDate(), agoraOriginal.getHours(), agoraOriginal.getMinutes(), 0, 0);
+        
+        if (ultimoMinutoRenderizado !== -1 && agoraOriginal.getMinutes() !== ultimoMinutoRenderizado) {
+            if (horarioSelecionadoManual && navigator.vibrate) {
+                navigator.vibrate(100);
+            }
+        }
         ultimoMinutoRenderizado = agoraOriginal.getMinutes();
 
         const dataObj = new Date(dataInput + "T00:00:00");
@@ -272,11 +453,9 @@
         }
 
         const alvoFinal = (ehHoje && !horarioSelecionadoManual) ? proximoAuto : horarioSelecionadoManual;
-
         const infoDataHora = document.getElementById('data-hora-info');
         const diaMesFormatado = dataInput.split('-').slice(1).reverse().join('/');
 
-        // AJUSTE DO TIMER: Se o selecionado for o próximo real, fica verde.
         if (ehHoje) {
             if (horarioSelecionadoManual && horarioSelecionadoManual !== proximoAuto) {
                 timerBox.classList.remove('modo-real');
@@ -310,7 +489,6 @@
                 card.classList.add('proximo-fretado-sempre');
                 const badge = document.createElement('span');
                 badge.className = 'badge-status';
-                // SE o manual for o próximo real, escreve PRÓXIMO em vez de SELECIONADO
                 badge.innerText = (h === proximoAuto) ? 'PRÓXIMO' : 'SELECIONADO';
                 card.appendChild(badge);
                 
@@ -347,11 +525,11 @@
         const hojeLocal = new Date(agoraOriginal.getFullYear(), agoraOriginal.getMonth(), agoraOriginal.getDate());
         const diffDias = Math.round((dataSelecionadaLocal - hojeLocal) / (1000 * 3600 * 24));
 
-        iniciarContagem(alvoFinal, diffDias);
+        iniciarContagem(alvoFinal, diffDias, (ehHoje && (!horarioSelecionadoManual || horarioSelecionadoManual === proximoAuto)));
     }
 
     let timerInterval;
-    function iniciarContagem(hAlvo, diffDias) {
+    function iniciarContagem(hAlvo, diffDias, isProximoReal) {
         clearInterval(timerInterval);
         const display = document.getElementById('countdown');
 
@@ -377,14 +555,20 @@
                 return;
             }
 
-            if (diff <= 60000 && diff > 59000 && !vibrouUmMinuto) {
-                if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
-                vibrouUmMinuto = true;
+            if (isProximoReal && navigator.vibrate) {
+                if (diff <= 180000 && diff > 179000 && !vibrouTresMinutos) {
+                    navigator.vibrate([100, 100, 100, 100, 100]);
+                    vibrouTresMinutos = true;
+                }
+                if (diff <= 60000 && diff > 59000 && !vibrouUmMinuto) {
+                    navigator.vibrate([100, 100, 100]);
+                    vibrouUmMinuto = true;
+                }
             }
 
             if (diff <= 0) {
                 display.innerText = "00:00:00";
-                if (navigator.vibrate && !vibrouChegada) {
+                if (isProximoReal && navigator.vibrate && !vibrouChegada) {
                     navigator.vibrate(1000);
                     vibrouChegada = true;
                 }
@@ -403,6 +587,42 @@
 
         tick();
         timerInterval = setInterval(tick, 1000);
+    }
+
+    /* --- NOVAS FUNÇÕES: COMPARTILHAMENTO --- */
+    function toggleModal(show) {
+        const modal = document.getElementById('share-modal');
+        modal.style.display = show ? 'flex' : 'none';
+        if(!show) document.getElementById('copy-toast').style.visibility = 'hidden';
+    }
+
+    function copiarLink() {
+        const url = "https://vivo61991-tech.github.io/vivo-horario-fretado/";
+        
+        navigator.clipboard.writeText(url).then(() => {
+            mostrarToast();
+        }).catch(err => {
+            const input = document.createElement('input');
+            input.value = url;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            mostrarToast();
+        });
+    }
+
+    function mostrarToast() {
+        const toast = document.getElementById('copy-toast');
+        toast.style.visibility = 'visible';
+        setTimeout(() => {
+            toast.style.visibility = 'hidden';
+        }, 2500);
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('share-modal');
+        if (event.target == modal) toggleModal(false);
     }
 
     window.onload = iniciar;

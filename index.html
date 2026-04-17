@@ -6,9 +6,20 @@
     <meta name="theme-color" content="#642A90">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    
     <title>Vivo - Fretados</title>
-	<link rel="icon" type="image/png" href="favicon.png">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Vivo - Horários Fretados">
+    <meta property="og:description" content="Consulte os horários dos fretados (Borba Gato / Granja Julieta / Telefônica).">
+    <meta property="og:url" content="https://vivo61991-tech.github.io/vivo-horario-fretado/">
+    <meta property="og:image" content="https://vivo61991-tech.github.io/vivo-horario-fretado/favicon.png">
+    <meta property="og:image:width" content="300">
+    <meta property="og:image:height" content="300">
+
+    <link rel="icon" type="image/png" href="favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
     <style>
         :root {
             --vivo-purple: #642A90;
@@ -167,7 +178,6 @@
         .horario-card.proximo-fretado-sempre { background: var(--vivo-green) !important; color: white !important; border: none !important; z-index: 2; font-weight: 800 !important; }
         .badge-status { position: absolute; right: 15px; font-size: 0.6rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; }
 
-        /* --- NOVOS ESTILOS: COMPARTILHAMENTO --- */
         .btn-share-float {
             position: fixed;
             bottom: 25px;
@@ -589,7 +599,6 @@
         timerInterval = setInterval(tick, 1000);
     }
 
-    /* --- NOVAS FUNÇÕES: COMPARTILHAMENTO --- */
     function toggleModal(show) {
         const modal = document.getElementById('share-modal');
         modal.style.display = show ? 'flex' : 'none';

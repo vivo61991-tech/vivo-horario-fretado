@@ -9,14 +9,6 @@
     
     <title>Vivo - Fretados</title>
 
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Vivo - Horários Fretados">
-    <meta property="og:description" content="Consulte os horários dos fretados (Borba Gato / Granja Julieta / Telefônica).">
-    <meta property="og:url" content="https://vivo61991-tech.github.io/vivo-horario-fretado/">
-    <meta property="og:image" content="https://vivo61991-tech.github.io/vivo-horario-fretado/favicon.png">
-    <meta property="og:image:width" content="300">
-    <meta property="og:image:height" content="300">
-
     <link rel="icon" type="image/png" href="favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     
@@ -72,19 +64,30 @@
             display: flex;
             gap: 10px;
             position: relative; 
-            align-items: center;
+            align-items: flex-end; /* Alinha os selects pelo fundo por causa dos labels */
         }
 
-        .row-overlap > select {
+        .select-wrapper {
             flex: 1;
-            width: 50%; 
+            display: flex;
+            flex-direction: column;
+            width: 50%;
+        }
+
+        .label-select {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--vivo-purple);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            margin-left: 4px;
         }
 
         .btn-inverter {
             position: absolute;
             left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%); 
+            bottom: 8px; /* Ajustado para centralizar entre os campos de texto */
+            transform: translateX(-50%); 
             background: var(--card-bg);
             border: 1.5px solid #E0E0E0;
             border-radius: 50%;
@@ -101,22 +104,32 @@
             transition: all 0.2s;
         }
 
-        .btn-inverter:active { transform: translate(-50%, -50%) scale(0.9); background: #f0f0f0; }
+        .btn-inverter:active { transform: translateX(-50%) scale(0.9); background: #f0f0f0; }
 
         .row { display: flex; gap: 10px; }
 
+        /* Estilização Base do Select com Ícone */
         select, input[type="date"] { 
             appearance: none;
             background: var(--card-bg);
             border: 1.5px solid #E0E0E0;
             border-radius: 12px;
-            padding: 0 15px;
+            padding: 0 10px 0 40px; /* Espaço para o ícone à esquerda */
             height: 52px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             outline: none;
             color: var(--text-main);
             width: 100%;
+            background-repeat: no-repeat !important;
+            background-position: 10px center !important;
+            background-size: 22px auto !important;
+            transition: background-image 0.3s;
         }
+
+        /* Lógica de Troca de Ícones baseada em Atributo */
+        select[data-local="BORBA GATO"] { background-image: url('borba_gato.png'); }
+        select[data-local="GRANJA JULIETA"] { background-image: url('granja_julieta.png'); }
+        select[data-local="TELEFONICA"] { background-image: url('telefonica.png'); }
 
         .feriado-toggle { 
             display: flex; align-items: center; justify-content: space-between;
@@ -203,7 +216,6 @@
             border: none;
             transition: transform 0.2s;
         }
-        .btn-share-float:active { transform: scale(0.9); }
 
         .modal-overlay {
             position: fixed;
@@ -268,9 +280,17 @@
 
 <div class="filter-panel">
     <div class="row-overlap">
-        <select id="select-partida" onchange="resetECarregar()"></select>
+        <div class="select-wrapper">
+            <span class="label-select">▲ Embarque</span>
+            <select id="select-partida" onchange="resetECarregar()"></select>
+        </div>
+        
         <button class="btn-inverter" onclick="inverterSelecao()">⇆</button>
-        <select id="select-destino" onchange="resetECarregar()"></select>
+        
+        <div class="select-wrapper">
+            <span class="label-select">▼ Desembarque</span>
+            <select id="select-destino" onchange="resetECarregar()"></select>
+        </div>
     </div>
     <div class="row">
         <input type="date" id="input-data" onchange="validarData()" style="flex: 1;">
@@ -293,12 +313,9 @@
     <div class="modal-content">
         <h3 style="margin:0; color:var(--vivo-purple); font-weight:800;">Vivo ⏱️ Transporte</h3>
         <p style="font-size:0.8rem; color:#666; margin: 5px 0 15px;">Compartilhe os horários</p>
-        
         <img src="qrcode.png" alt="QR Code" class="qr-code-img">
-        
         <button class="btn-modal btn-copy" onclick="copiarLink()">Copiar Link</button>
         <div id="copy-toast">link copiado</div>
-        
         <button class="btn-modal btn-close" onclick="toggleModal(false)">Fechar</button>
     </div>
 </div>
@@ -343,7 +360,8 @@
 
     function iniciar() {
         const pSelReal = document.getElementById('select-partida');
-        Object.keys(db).forEach(p => pSelReal.options.add(new Option(`▲ ${p}`, p)));
+        // Preenche sem as setas de texto
+        Object.keys(db).forEach(p => pSelReal.options.add(new Option(p, p)));
         
         const agora = new Date();
         const horaMinutoAtual = (agora.getHours() * 100) + agora.getMinutes();
@@ -383,6 +401,14 @@
         salvarPreferencias();
     }
 
+    function atualizarIcones() {
+        const pSel = document.getElementById('select-partida');
+        const dSel = document.getElementById('select-destino');
+        // Atualiza os atributos que o CSS usa para carregar as imagens
+        pSel.setAttribute('data-local', pSel.value);
+        dSel.setAttribute('data-local', dSel.value);
+    }
+
     function validarData() {
         horarioSelecionadoManual = null;
         ultimoHorarioAlvo = null;
@@ -418,17 +444,18 @@
         dSel.innerHTML = ''; 
         if (partida && db[partida]) {
             const destinos = Object.keys(db[partida]);
-            destinos.forEach(d => dSel.options.add(new Option(`▼ ${d}`, d)));
+            destinos.forEach(d => dSel.options.add(new Option(d, d)));
             dSel.value = destinos.includes(dAtual) ? dAtual : dSel.options[0].value;
         }
+        atualizarIcones();
         gerarLista();
     }
 
     function ajustarDiaPorData() {
         const dataInput = document.getElementById('input-data').value;
         if (dataInput) {
-            const partes = dataInput.split('-'); // [YYYY, MM, DD]
-            const mesDia = `${partes[1]}-${partes[2]}`; // Formato MM-DD
+            const partes = dataInput.split('-');
+            const mesDia = `${partes[1]}-${partes[2]}`;
             document.getElementById('check-feriado').checked = feriadosFixos.includes(mesDia);
         }
         gerarLista();
@@ -593,16 +620,13 @@
                 }
             }
 
-            // CORREÇÃO: Vibração de chegada com janela de 500ms
             if (diff <= 500) {
                 if (isProximoReal && navigator.vibrate && !vibrouChegada) {
                     navigator.vibrate([500, 200, 500]);
                     vibrouChegada = true;
                 }
-                
                 display.innerText = "00:00:00";
                 timerBox.classList.add('modo-encerrado'); 
-                
                 clearInterval(timerInterval);
                 horarioSelecionadoManual = null;
                 ultimoHorarioAlvo = null;
@@ -628,7 +652,6 @@
 
     function copiarLink() {
         const url = "https://vivo61991-tech.github.io/vivo-horario-fretado/";
-        
         navigator.clipboard.writeText(url).then(() => {
             mostrarToast();
         }).catch(err => {

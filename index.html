@@ -64,7 +64,7 @@
             display: flex;
             gap: 10px;
             position: relative; 
-            align-items: flex-end; /* Alinha os selects pelo fundo por causa dos labels */
+            align-items: flex-end; 
         }
 
         .select-wrapper {
@@ -83,10 +83,17 @@
             margin-left: 4px;
         }
 
+        /* Ajuste para o label do segundo campo (Desembarque) */
+        .select-wrapper:last-child .label-select {
+            margin-left: 0;
+            margin-right: 4px;
+            text-align: right;
+        }
+
         .btn-inverter {
             position: absolute;
             left: 50%;
-            bottom: 8px; /* Ajustado para centralizar entre os campos de texto */
+            bottom: 8px; 
             transform: translateX(-50%); 
             background: var(--card-bg);
             border: 1.5px solid #E0E0E0;
@@ -108,13 +115,12 @@
 
         .row { display: flex; gap: 10px; }
 
-        /* Estilização Base do Select com Ícone */
         select, input[type="date"] { 
             appearance: none;
             background: var(--card-bg);
             border: 1.5px solid #E0E0E0;
             border-radius: 12px;
-            padding: 0 10px 0 40px; /* Espaço para o ícone à esquerda */
+            padding: 0 10px 0 40px; 
             height: 52px;
             font-size: 0.9rem;
             outline: none;
@@ -126,7 +132,13 @@
             transition: background-image 0.3s;
         }
 
-        /* Lógica de Troca de Ícones baseada em Atributo */
+        /* Customização para o campo de Destino (Desembarque) */
+        #select-destino {
+            padding: 0 40px 0 10px; /* Inverte o padding: espaço para o ícone na direita */
+            text-align: right;
+            background-position: calc(100% - 10px) center !important; /* Move ícone para a direita */
+        }
+
         select[data-local="BORBA GATO"] { background-image: url('borba_gato.png'); }
         select[data-local="GRANJA JULIETA"] { background-image: url('granja_julieta.png'); }
         select[data-local="TELEFONICA"] { background-image: url('telefonica.png'); }
@@ -360,7 +372,6 @@
 
     function iniciar() {
         const pSelReal = document.getElementById('select-partida');
-        // Preenche sem as setas de texto
         Object.keys(db).forEach(p => pSelReal.options.add(new Option(p, p)));
         
         const agora = new Date();
@@ -404,7 +415,6 @@
     function atualizarIcones() {
         const pSel = document.getElementById('select-partida');
         const dSel = document.getElementById('select-destino');
-        // Atualiza os atributos que o CSS usa para carregar as imagens
         pSel.setAttribute('data-local', pSel.value);
         dSel.setAttribute('data-local', dSel.value);
     }
@@ -651,7 +661,7 @@
     }
 
     function copiarLink() {
-        const url = "https://vivo61991-tech.github.io/vivo-horario-fretado/";
+        const url = "https://vivo-horarios-fretados.github.io/vivo-horario-fretado/";
         navigator.clipboard.writeText(url).then(() => {
             mostrarToast();
         }).catch(err => {

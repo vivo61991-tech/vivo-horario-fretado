@@ -25,6 +25,7 @@
             --vivo-purple: #642A90;
             --vivo-purple-light: #7b39ad;
             --vivo-green: #99CC33;
+            --vivo-orange: #FF9901;
             --bg: #F8F9FA;
             --card-bg: #FFFFFF;
             --text-main: #333;
@@ -153,6 +154,11 @@
         .timer-container.modo-real {
             background: linear-gradient(135deg, #82ad2b, var(--vivo-green)) !important;
             box-shadow: 0 8px 20px rgba(153, 204, 51, 0.4) !important;
+        }
+
+        .timer-container.modo-encerrado {
+            background: var(--vivo-orange) !important;
+            box-shadow: 0 8px 20px rgba(255, 153, 1, 0.4) !important;
         }
 
         .timer-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; }
@@ -420,8 +426,11 @@
 
     function ajustarDiaPorData() {
         const dataInput = document.getElementById('input-data').value;
-        const diaMes = dataInput.split('-').slice(1).reverse().join('-');
-        document.getElementById('check-feriado').checked = feriadosFixos.includes(diaMes);
+        if (dataInput) {
+            const partes = dataInput.split('-'); // [YYYY, MM, DD]
+            const mesDia = `${partes[1]}-${partes[2]}`; // Formato MM-DD
+            document.getElementById('check-feriado').checked = feriadosFixos.includes(mesDia);
+        }
         gerarLista();
     }
 
@@ -542,8 +551,10 @@
     function iniciarContagem(hAlvo, diffDias, isProximoReal) {
         clearInterval(timerInterval);
         const display = document.getElementById('countdown');
+        const timerBox = document.getElementById('timer-box'); 
 
         if (diffDias !== 0) {
+            timerBox.classList.remove('modo-encerrado'); 
             if (diffDias === 1) display.innerText = "Amanhã";
             else if (diffDias === -1) display.innerText = "Ontem";
             else if (diffDias > 1) display.innerText = `Em ${diffDias} dias`;
@@ -551,7 +562,13 @@
             return;
         }
 
-        if (!hAlvo) { display.innerText = "Encerrado"; return; }
+        if (!hAlvo) { 
+            display.innerText = "Encerrado"; 
+            timerBox.classList.add('modo-encerrado'); 
+            return; 
+        } else {
+            timerBox.classList.remove('modo-encerrado'); 
+        }
 
         const [h, m] = hAlvo.split(':');
         const alvo = new Date(); alvo.setHours(parseInt(h), parseInt(m), 0, 0);
@@ -576,12 +593,16 @@
                 }
             }
 
-            if (diff <= 0) {
-                display.innerText = "00:00:00";
+            // CORREÇÃO: Vibração de chegada com janela de 500ms
+            if (diff <= 500) {
                 if (isProximoReal && navigator.vibrate && !vibrouChegada) {
-                    navigator.vibrate(1000);
+                    navigator.vibrate([500, 200, 500]);
                     vibrouChegada = true;
                 }
+                
+                display.innerText = "00:00:00";
+                timerBox.classList.add('modo-encerrado'); 
+                
                 clearInterval(timerInterval);
                 horarioSelecionadoManual = null;
                 ultimoHorarioAlvo = null;

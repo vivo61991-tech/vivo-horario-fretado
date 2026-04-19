@@ -83,7 +83,6 @@
             margin-left: 4px;
         }
 
-        /* Ajuste para o label do segundo campo (Desembarque) */
         .select-wrapper:last-child .label-select {
             margin-left: 0;
             margin-right: 4px;
@@ -132,11 +131,10 @@
             transition: background-image 0.3s;
         }
 
-        /* Customização para o campo de Destino (Desembarque) */
         #select-destino {
-            padding: 0 40px 0 10px; /* Inverte o padding: espaço para o ícone na direita */
+            padding: 0 40px 0 10px;
             text-align: right;
-            background-position: calc(100% - 10px) center !important; /* Move ícone para a direita */
+            background-position: calc(100% - 10px) center !important;
         }
 
         select[data-local="BORBA GATO"] { background-image: url('borba_gato.png'); }
@@ -332,37 +330,12 @@
     </div>
 </div>
 
-<script>
-    const db = {
-        "BORBA GATO": { "TELEFONICA": { 
-            "Dia Útil": ["07:30","07:40","07:50","08:00","08:10","08:20","08:30","08:40","08:50","09:00","09:10","09:20","09:30","09:40","09:50","10:10","10:25","10:45","11:05","11:25","11:45","12:05","12:25","12:45","13:05","13:25","13:45","14:05","14:30"],
-            "Sábado": ["07:30","07:50","08:10","08:30","08:50","09:10","09:30","09:50","10:10","10:25","10:45","11:05","11:25","11:45","12:05","12:25","12:45","14:05","14:20"],
-            "Domingo": ["07:30","07:45","08:00","08:15","08:30","08:45","09:00","09:15","09:30","09:50","10:50","11:30","11:45","12:00","12:25"],
-            "Feriado": ["07:30","07:50","08:10","08:30","08:50","09:10","09:30","09:50","10:10","10:45","11:05","11:45","12:05","12:25","12:45","14:05","14:30"]
-        }},
-        "GRANJA JULIETA": { "TELEFONICA": { 
-            "Dia Útil": ["07:30","07:40","07:50","08:00","08:10","08:20","08:30","08:40","08:50","09:00","09:10","09:20","09:30","09:40","09:50","10:00","10:10","10:25","10:40","10:50","11:00","11:10","11:20","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:40","13:55","14:10","14:30"],
-            "Sábado": ["07:30","07:45","08:00","08:15","08:30","08:45","09:00","09:15","09:30","09:45","10:10","10:40","10:50","11:25","11:50","12:10","12:30","12:50","13:50","14:00","14:10","14:30"],
-            "Domingo": ["07:30","07:45","08:00","08:15","08:30","08:45","09:00","09:15","09:30","09:50","10:50","11:30","11:45","12:00"],
-            "Feriado": ["07:30","07:45","08:00","08:15","08:30","08:45","09:00","09:15","09:30","09:45","10:10","10:35","10:50","11:25","11:50","12:10","12:30","12:45","13:50","14:10","14:30"]
-        }},
-        "TELEFONICA": { 
-            "BORBA GATO": { 
-                "Dia Útil": ["14:25","14:45","15:05","15:25","15:45","16:05","16:25","16:45","17:05","17:25","17:45","18:05","18:25","18:45","19:05","19:25","19:45","20:05","20:25","20:45","21:05","21:25","22:05"],
-                "Sábado": ["14:30","14:45","15:05","15:25","15:45","16:05","16:25","17:05","17:25","17:45","18:05","18:25","18:45","19:05","19:25","19:45","20:05","20:45","21:05"],
-                "Domingo": ["14:05","14:25","14:45","15:05","15:25","16:05","16:25","16:40","17:05","17:25","18:05","18:25","19:05"],
-                "Feriado": ["14:25","14:45","15:25","15:45","16:05","16:25","17:05","17:25","17:45","18:05","18:25","18:45","19:05","19:25","19:45","20:05","20:45","21:05"]
-            },
-            "GRANJA JULIETA": { 
-                "Dia Útil": ["14:25","14:45","15:05","15:25","15:40","15:55","16:05","16:25","17:05","17:25","17:45","17:55","18:05","18:15","18:25","18:35","18:45","18:55","19:05","19:25","19:45","20:05","20:35","20:50","21:05","21:25","22:05"],
-                "Sábado": ["14:25","14:45","15:05","15:25","15:35","15:45","16:05","16:25","16:45","17:05","17:25","18:05","18:25","18:45","19:05","19:25","19:45","20:05","20:25","20:45","21:05"],
-                "Domingo": ["14:05","14:25","14:45","15:05","16:05","16:25","16:40","17:05","17:25","18:05","18:25","19:05"],
-                "Feriado": ["14:25","14:45","15:05","15:25","15:45","16:05","16:25","16:45","17:05","17:25","17:45","18:05","18:25","18:45","19:05","19:25","19:45","20:05","20:25","20:45","21:05"]
-            }
-        }
-    };
+<script src="horarios.js"></script>
+<script src="feriados.js"></script>
 
-    const feriadosFixos = ["01-01", "01-25", "04-21", "05-01", "07-09", "09-07", "10-12", "11-02", "11-15", "11-20", "25-12"];
+<script>
+    let db = {};
+    // A constante feriadosFixos foi removida daqui
     let horarioSelecionadoManual = null;
     let ultimoHorarioAlvo = null; 
     let vibrouTresMinutos = false;
@@ -370,7 +343,19 @@
     let vibrouChegada = false;
     let ultimoMinutoRenderizado = -1;
 
+    function organizarDados() {
+        const organizado = {};
+        HORARIOS_DATA.forEach(item => {
+            if (!organizado[item.partida]) organizado[item.partida] = {};
+            if (!organizado[item.partida][item.destino]) organizado[item.partida][item.destino] = {};
+            if (!organizado[item.partida][item.destino][item.dia]) organizado[item.partida][item.destino][item.dia] = [];
+            organizado[item.partida][item.destino][item.dia].push(item.horario);
+        });
+        db = organizado;
+    }
+
     function iniciar() {
+        organizarDados();
         const pSelReal = document.getElementById('select-partida');
         Object.keys(db).forEach(p => pSelReal.options.add(new Option(p, p)));
         
@@ -466,7 +451,8 @@
         if (dataInput) {
             const partes = dataInput.split('-');
             const mesDia = `${partes[1]}-${partes[2]}`;
-            document.getElementById('check-feriado').checked = feriadosFixos.includes(mesDia);
+            // Ajustado para ler do arquivo externo FERIADOS_FIXOS
+            document.getElementById('check-feriado').checked = FERIADOS_FIXOS.includes(mesDia);
         }
         gerarLista();
     }
@@ -482,18 +468,13 @@
         const agoraOriginal = new Date();
         const agoraLimpo = new Date(agoraOriginal.getFullYear(), agoraOriginal.getMonth(), agoraOriginal.getDate(), agoraOriginal.getHours(), agoraOriginal.getMinutes(), 0, 0);
         
-        if (ultimoMinutoRenderizado !== -1 && agoraOriginal.getMinutes() !== ultimoMinutoRenderizado) {
-            if (horarioSelecionadoManual && navigator.vibrate) {
-                navigator.vibrate(100);
-            }
-        }
         ultimoMinutoRenderizado = agoraOriginal.getMinutes();
 
         const dataObj = new Date(dataInput + "T00:00:00");
         let filtroDia = isFeriado ? "Feriado" : (dataObj.getDay() === 0 ? "Domingo" : (dataObj.getDay() === 6 ? "Sábado" : "Dia Útil"));
         document.getElementById('info-dia').innerText = filtroDia;
 
-        const horarios = db[partida][destino][filtroDia] || [];
+        const horarios = (db[partida] && db[partida][destino]) ? (db[partida][destino][filtroDia] || []) : [];
         listaDiv.innerHTML = "";
         
         const hojeStr = new Date(agoraOriginal.getTime() - (agoraOriginal.getTimezoneOffset() * 60000)).toISOString().split('T')[0];

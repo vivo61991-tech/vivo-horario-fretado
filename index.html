@@ -13,7 +13,7 @@
     <meta property="og:title" content="Vivo - Horários Fretados">
     <meta property="og:description" content="Consulte os horários dos fretados (Borba Gato / Granja Julieta / Telefônica).">
     <meta property="og:url" content="https://vivo61991-tech.github.io/vivo-horario-fretado/">
-    <meta property="og:image" content="https://vivo61991-tech.github.io/vivo-horario-fretado/favicon.png">
+    <meta property="og:image" content="https://vivo61991-tech.github.io/vivo-horario-fretado/img/favicon.png">
     <meta property="og:image:width" content="300">
     <meta property="og:image:height" content="300">
 
@@ -145,9 +145,10 @@
             background-position: calc(100% - 10px) center !important;
         }
 
-        select[data-local="BORBA GATO"] { background-image: url('borba_gato.png'); }
-        select[data-local="GRANJA JULIETA"] { background-image: url('granja_julieta.png'); }
-        select[data-local="TELEFONICA"] { background-image: url('telefonica.png'); }
+        /* Ajuste dos caminhos das imagens no CSS */
+        select[data-local="BORBA GATO"] { background-image: url('img/borba_gato.png'); }
+        select[data-local="GRANJA JULIETA"] { background-image: url('img/granja_julieta.png'); }
+        select[data-local="TELEFONICA"] { background-image: url('img/telefonica.png'); }
 
         .feriado-toggle { 
             display: flex; align-items: center; justify-content: space-between;
@@ -331,17 +332,18 @@
     <div class="modal-content">
         <h3 style="margin:0; color:var(--vivo-purple); font-weight:800;">Vivo ⏱️ Transporte</h3>
         <p style="font-size:0.8rem; color:#666; margin: 5px 0 15px;">Compartilhe os horários</p>
-        <img src="qrcode.png" alt="QR Code" class="qr-code-img">
+        <img src="img/qrcode.png" alt="QR Code" class="qr-code-img">
         <button class="btn-modal btn-copy" onclick="copiarLink()">Copiar Link</button>
         <div id="copy-toast">link copiado</div>
         <button class="btn-modal btn-close" onclick="toggleModal(false)">Fechar</button>
     </div>
 </div>
 
-<script src="horarios.js"></script>
-<script src="feriados.js"></script>
+<script src="data/horarios.js"></script>
+<script src="data/feriados.js"></script>
 
 <script>
+    // Mantendo toda a sua lógica original sem alterações
     let db = {};
     let horarioSelecionadoManual = null;
     let ultimoHorarioAlvo = null; 

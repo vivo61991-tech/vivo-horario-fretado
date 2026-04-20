@@ -281,11 +281,29 @@
         const pSelReal = document.getElementById('select-partida');
         const dSelReal = document.getElementById('select-destino');
         Object.keys(db).forEach(p => pSelReal.options.add(new Option(p, p)));
+        
         const agora = new Date();
         const horaMinutoAtual = (agora.getHours() * 100) + agora.getMinutes();
         let localidadePreferida = localStorage.getItem('localidade_base') || "BORBA GATO";
         
-        if (horaMinutoAtual < 1430) {
+        // IDENTIFICA O TIPO DE DIA PARA BUSCAR O HORÁRIO DE CORTE CORRETO
+        const isFeriado = FERIADOS_FIXOS.includes(`${String(agora.getMonth() + 1).padStart(2, '0')}-${String(agora.getDate()).padStart(2, '0')}`);
+        let filtroDia = isFeriado ? "Feriado" : (agora.getDay() === 0 ? "Domingo" : (agora.getDay() === 6 ? "Sábado" : "Dia Útil"));
+
+        // BUSCA O ÚLTIMO HORÁRIO DE IDA (Base -> Telefônica) NO ARQUIVO DE DADOS
+        const horariosIda = (db[localidadePreferida] && db[localidadePreferida]["TELEFONICA"]) 
+                            ? (db[localidadePreferida]["TELEFONICA"][filtroDia] || []) 
+                            : [];
+
+        // DEFINE O HORÁRIO DE CORTE DINAMICAMENTE
+        let horarioCorte = 1430; // Valor padrão de segurança
+        if (horariosIda.length > 0) {
+            const ultimoHorarioStr = horariosIda[horariosIda.length - 1];
+            horarioCorte = parseInt(ultimoHorarioStr.replace(':', ''));
+        }
+
+        // LÓGICA DE ALTERNÂNCIA BASEADA NO CORTE DINÂMICO
+        if (horaMinutoAtual <= horarioCorte) {
             pSelReal.value = localidadePreferida;
             atualizarDestinos();
             dSelReal.value = "TELEFONICA";
@@ -295,7 +313,6 @@
             dSelReal.value = localidadePreferida;
         }
         
-        // CORREÇÃO: Sincroniza as imagens iniciais
         pSelReal.setAttribute('data-local', pSelReal.value);
         dSelReal.setAttribute('data-local', dSelReal.value);
 

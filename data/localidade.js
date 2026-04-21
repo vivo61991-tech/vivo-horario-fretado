@@ -16,9 +16,9 @@ const locais = [
   {
     nome: "TELEFONICA",
     endereco: "Rua Antônio das Chagas, 1196",
-    coordenadas: "-23.6291001,-46.7042669",
-    latitude: -23.6291001,
-    longitude: -46.7042669
+    coordenadas: "-23.628909, -46.704325",
+    latitude: -23.628909,
+    longitude: -46.704325
   }
 ];
 

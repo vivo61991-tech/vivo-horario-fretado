@@ -9,6 +9,8 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     
+    <link rel="manifest" href="manifest.json">
+
     <style>
         :root {
             --vivo-purple: #642A90;
@@ -28,12 +30,16 @@
         body { 
             font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; 
             display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden;
+            padding-top: env(safe-area-inset-top); /* Proteção adicional para o corpo */
         }
         
         .header { 
-            background: var(--vivo-purple); color: white; padding: env(safe-area-inset-top, 20px) 15px 15px; 
+            background: var(--vivo-purple); color: white; 
+            padding: 15px 15px 15px; /* Padding interno fixo */
+            margin-top: 0; 
             text-align: center; font-size: 1.2rem; font-weight: 800; border-radius: 0 0 var(--radius) var(--radius);
             box-shadow: var(--shadow); z-index: 100; flex-shrink: 0;
+            position: relative;
         }
 
         .filter-panel { padding: 15px 15px 10px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
@@ -72,14 +78,29 @@
             padding: 0 15px; height: 52px; font-weight: 600; font-size: 0.85rem; color: var(--vivo-purple); flex: 1;
         }
 
-        .feriado-toggle input { width: 40px; height: 22px; appearance: none; background: #DDD; border-radius: 20px; position: relative; transition: .3s; }
-        .feriado-toggle input:checked { background: var(--vivo-green); }
-        .feriado-toggle input::before { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; top: 2px; left: 2px; background: white; transition: .3s; }
-        .feriado-toggle input:checked::before { transform: translateX(18px); }
+        .feriado-toggle input[type="checkbox"] { width: 40px; height: 22px; appearance: none; background: #DDD; border-radius: 20px; position: relative; transition: .3s; }
+        .feriado-toggle input[type="checkbox"]:checked { background: var(--vivo-green); }
+        .feriado-toggle input[type="checkbox"]::before { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; top: 2px; left: 2px; background: white; transition: .3s; }
+        .feriado-toggle input[type="checkbox"]:checked::before { transform: translateX(18px); }
 
         .timer-container { 
             margin: 0 15px 15px; background: linear-gradient(135deg, var(--vivo-purple), var(--vivo-purple-light)); 
             color: white; padding: 20px; border-radius: var(--radius); text-align: center; box-shadow: 0 8px 20px rgba(100, 42, 144, 0.3); flex-shrink: 0;
+            position: relative;
+        }
+
+        #notif-indicator { 
+            position: absolute; top: 12px; right: 15px; 
+            display: none; flex-direction: column; align-items: center;
+            cursor: pointer;
+        }
+
+        #notif-indicator span:first-child { 
+            font-size: 1.2rem; filter: brightness(0) invert(1); line-height: 1; 
+        }
+
+        #notif-indicator-val {
+            font-size: 0.6rem; font-weight: 600; opacity: 0.9; margin-top: 2px;
         }
 
         .timer-container.modo-real { background: linear-gradient(135deg, #82ad2b, var(--vivo-green)) !important; }
@@ -102,31 +123,41 @@
         .horario-card.proximo-fretado-sempre { background: var(--vivo-green) !important; color: white !important; border: none !important; font-weight: 800 !important; }
         .badge-status { position: absolute; right: 15px; font-size: 0.6rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; }
 
-        /* MENU FLUTUANTE */
         .menu-container { position: fixed; bottom: 25px; right: 25px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; z-index: 2000; }
         .btn-menu-float { width: 56px; height: 56px; background: var(--vivo-purple); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: none; cursor: pointer; }
         .menu-options { display: none; flex-direction: column; gap: 8px; margin-bottom: 5px; }
-        .menu-options button { background: white; border: 1px solid #ddd; padding: 12px 20px; border-radius: 25px; font-weight: 800; font-family: 'Inter'; color: var(--vivo-purple); box-shadow: var(--shadow); cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
+        
+        .menu-options button { 
+            background: white; border: 1px solid #ddd; padding: 10px 20px; border-radius: 25px; 
+            font-weight: 800; font-family: 'Inter'; color: var(--vivo-purple); box-shadow: var(--shadow); 
+            cursor: pointer; white-space: nowrap; font-size: 0.85rem;
+            display: flex; align-items: center; gap: 8px; justify-content: flex-start;
+        }
+        .menu-options button img { width: 18px; height: 18px; object-fit: contain; }
 
-        /* MODAIS */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 3000; backdrop-filter: blur(4px); }
         .modal-content { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; box-shadow: var(--shadow); position: relative; }
+        
+        .notification-config { text-align: left; }
+        .notif-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .slider-container { margin-top: 15px; opacity: 0.4; pointer-events: none; transition: 0.3s; }
+        .slider-container.active { opacity: 1; pointer-events: auto; }
+        input[type="range"] { width: 100%; accent-color: var(--vivo-purple); margin: 15px 0; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 800; color: var(--vivo-purple); }
+
+        .btn-modal { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 600; margin-top: 10px; cursor: pointer; font-size: 0.9rem; font-family: 'Inter', sans-serif; }
+        .btn-copy { background: var(--vivo-purple); color: white; }
+        .btn-close { background: #f5f5f5; color: #666; }
         
         .location-modal-content { padding: 0; overflow: hidden; max-width: 350px; }
         #map-container { width: 100%; height: 200px; background: #eee; }
         .location-list { max-height: 280px; overflow-y: auto; padding: 10px; background: white; }
-        
         .location-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; border-radius: 10px; margin-bottom: 5px; }
         .location-item.selected { background: #f3ebff; border: 2px solid var(--vivo-purple); }
         .location-info { text-align: left; }
         .loc-nome { font-weight: 800; font-size: 0.95rem; color: var(--text-main); display: block; }
         .loc-end { font-weight: 400; font-size: 0.75rem; color: #666; display: block; }
         .loc-icon { width: 32px; height: 32px; object-fit: contain; }
-
-        .btn-modal { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 600; margin-top: 10px; cursor: pointer; font-size: 0.9rem; font-family: 'Inter', sans-serif; }
-        .btn-copy { background: var(--vivo-purple); color: white; }
-        .btn-close { background: #f5f5f5; color: #666; }
-        
         .location-btn-close { width: calc(100% - 20px); margin: 10px auto 15px; display: block; border-radius: 12px; }
 
         .qr-code-img { width: 160px; height: 160px; margin: 0 auto 15px; display: block; }
@@ -156,6 +187,10 @@
 </div>
 
 <div id="timer-box" class="timer-container">
+    <div id="notif-indicator" onclick="abrirModal('notif-modal')">
+        <span>🔔</span>
+        <span id="notif-indicator-val">0 min</span>
+    </div> 
     <div class="timer-label" id="timer-status">Próximo Horário:</div>
     <span id="data-hora-info" style="display: block; font-size: 0.9rem; margin-top: 5px; opacity: 0.9;"></span>
     <span id="countdown">00:00:00</span>
@@ -166,9 +201,10 @@
 
 <div class="menu-container">
     <div id="menu-options" class="menu-options">
-        <button onclick="abrirModal('share-modal')">🔗 Compartilhar</button>
-        <button onclick="abrirLocalizacao()">📍 Localização</button>
-        <button onclick="window.location.reload()">↺ Redefinir</button>
+        <button onclick="abrirModal('share-modal')"><img src="img/opcao_compartilhar.png"> Compartilhar</button>
+        <button onclick="abrirModal('notif-modal')"><img src="img/opcao_notificacao.png"> Notificação</button>
+        <button onclick="abrirLocalizacao()"><img src="img/opcao_localizacao.png"> Localização</button>
+        <button onclick="redefinirApp()"><img src="img/opcao_redefinir.png"> Redefinir</button>
     </div>
     <button class="btn-menu-float" onclick="toggleMenu()">☰</button>
 </div>
@@ -176,11 +212,36 @@
 <div id="share-modal" class="modal-overlay" onclick="fecharAoClicarFora(event)">
     <div class="modal-content">
         <h3 style="margin:0; color:var(--vivo-purple); font-weight:800;">Vivo ⏱️ Transporte</h3>
-        <p style="font-size:0.8rem; color:#666; margin: 5px 0 15px;">Compartilhe os horários</p>
         <img src="img/qrcode.png" alt="QR Code" class="qr-code-img">
         <button class="btn-modal btn-copy" onclick="copiarLink()">Copiar Link</button>
         <div id="copy-toast">link copiado</div>
         <button class="btn-modal btn-close" onclick="fecharModal('share-modal')">Fechar</button>
+    </div>
+</div>
+
+<div id="notif-modal" class="modal-overlay" onclick="fecharAoClicarFora(event)">
+    <div class="modal-content">
+        <h3 style="margin:0 0 20px; color:var(--vivo-purple); font-weight:800;">Configurar Alerta</h3>
+        <div class="notification-config">
+            <div class="notif-row">
+                <span style="font-weight: 700; color: var(--text-main);">Ativar Notificações</span>
+                <label class="feriado-toggle" style="flex: none; border: none; padding: 0; height: auto; background: transparent;">
+                    <input type="checkbox" id="check-notif" onchange="toggleNotifSlider()">
+                </label>
+            </div>
+            <div id="slider-box" class="slider-container">
+                <div class="slider-label">
+                    <span>Antecedência</span>
+                    <span id="val-notif">0 min</span>
+                </div>
+                <input type="range" id="range-notif" min="0" max="10" value="0" step="1" oninput="atualizarLabelNotif()">
+                <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: #999;">
+                    <span>Partida</span>
+                    <span>10 min</span>
+                </div>
+            </div>
+        </div>
+        <button class="btn-modal btn-close" onclick="fecharModal('notif-modal')">Fechar</button>
     </div>
 </div>
 
@@ -205,8 +266,18 @@
     let vibrouTresMinutos = false;
     let vibrouUmMinuto = false;
     let vibrouChegada = false;
+    let notificouAlerta = false;
+    let notificouPartida = false;
     let ultimoMinutoRenderizado = -1;
     let localizacaoSelecionada = null;
+
+    function redefinirApp() {
+        // Força o scroll para o topo antes de recarregar para evitar travamento da header
+        window.scrollTo(0, 0);
+        setTimeout(() => {
+            window.location.href = window.location.pathname + '?r=' + Math.random();
+        }, 50);
+    }
 
     function toggleMenu() {
         const menu = document.getElementById('menu-options');
@@ -216,6 +287,9 @@
     function abrirModal(id) {
         document.getElementById(id).style.display = 'flex';
         document.getElementById('menu-options').style.display = 'none';
+        if(id === 'notif-modal' && "Notification" in window && Notification.permission !== "granted") {
+            Notification.requestPermission();
+        }
     }
 
     function fecharModal(id) {
@@ -224,6 +298,30 @@
 
     function fecharAoClicarFora(e) {
         if (e.target.classList.contains('modal-overlay')) e.target.style.display = 'none';
+    }
+
+    function toggleNotifSlider() {
+        const ativo = document.getElementById('check-notif').checked;
+        const box = document.getElementById('slider-box');
+        const indicator = document.getElementById('notif-indicator');
+        
+        if(ativo) {
+            box.classList.add('active');
+            indicator.style.display = 'flex';
+            if("Notification" in window && Notification.permission === "default") {
+                Notification.requestPermission();
+            }
+        } else {
+            box.classList.remove('active');
+            indicator.style.display = 'none';
+        }
+    }
+
+    function atualizarLabelNotif() {
+        const val = document.getElementById('range-notif').value;
+        document.getElementById('val-notif').innerText = val + " min";
+        document.getElementById('notif-indicator-val').innerText = val + " min";
+        notificouAlerta = false; 
     }
 
     function abrirLocalizacao() {
@@ -259,7 +357,7 @@
         const iframe = document.getElementById('map-iframe');
         if (localizacaoSelecionada) {
             const l = locais.find(x => x.nome === localizacaoSelecionada);
-            iframe.src = `https://maps.google.com/maps?q=${l.latitude},${l.longitude}&z=17&output=embed`;
+            iframe.src = `https://www.google.com/maps?q=${l.latitude},${l.longitude}&z=16&output=embed`;
         } else {
             iframe.src = `about:blank`;
         }
@@ -286,23 +384,19 @@
         const horaMinutoAtual = (agora.getHours() * 100) + agora.getMinutes();
         let localidadePreferida = localStorage.getItem('localidade_base') || "BORBA GATO";
         
-        // IDENTIFICA O TIPO DE DIA PARA BUSCAR O HORÁRIO DE CORTE CORRETO
         const isFeriado = FERIADOS_FIXOS.includes(`${String(agora.getMonth() + 1).padStart(2, '0')}-${String(agora.getDate()).padStart(2, '0')}`);
         let filtroDia = isFeriado ? "Feriado" : (agora.getDay() === 0 ? "Domingo" : (agora.getDay() === 6 ? "Sábado" : "Dia Útil"));
 
-        // BUSCA O ÚLTIMO HORÁRIO DE IDA (Base -> Telefônica) NO ARQUIVO DE DADOS
         const horariosIda = (db[localidadePreferida] && db[localidadePreferida]["TELEFONICA"]) 
                             ? (db[localidadePreferida]["TELEFONICA"][filtroDia] || []) 
                             : [];
 
-        // DEFINE O HORÁRIO DE CORTE DINAMICAMENTE
-        let horarioCorte = 1430; // Valor padrão de segurança
+        let horarioCorte = 1430; 
         if (horariosIda.length > 0) {
             const ultimoHorarioStr = horariosIda[horariosIda.length - 1];
             horarioCorte = parseInt(ultimoHorarioStr.replace(':', ''));
         }
 
-        // LÓGICA DE ALTERNÂNCIA BASEADA NO CORTE DINÂMICO
         if (horaMinutoAtual <= horarioCorte) {
             pSelReal.value = localidadePreferida;
             atualizarDestinos();
@@ -329,7 +423,7 @@
 
     function resetECarregar() {
         horarioSelecionadoManual = null; ultimoHorarioAlvo = null;
-        limparVibracoes(); atualizarDestinos(); salvarPreferencias();
+        limparSinais(); atualizarDestinos(); salvarPreferencias();
     }
 
     function atualizarDestinos() {
@@ -364,7 +458,7 @@
     }
 
     function validarData() {
-        horarioSelecionadoManual = null; ultimoHorarioAlvo = null; limparVibracoes();
+        horarioSelecionadoManual = null; ultimoHorarioAlvo = null; limparSinais();
         if (!document.getElementById('input-data').value) resetarDataHoje();
         else ajustarDiaPorData();
     }
@@ -396,6 +490,7 @@
         const alvoFinal = (ehHoje && !horarioSelecionadoManual) ? proximoAuto : horarioSelecionadoManual;
         const infoDH = document.getElementById('data-hora-info');
         const diaFormatado = dataInput.split('-').slice(1).reverse().join('/');
+        
         if (ehHoje) {
             if (horarioSelecionadoManual && horarioSelecionadoManual !== proximoAuto) {
                 timerBox.classList.remove('modo-real');
@@ -411,6 +506,7 @@
             document.getElementById('timer-status').innerText = "Horário Selecionado:";
             infoDH.innerText = alvoFinal ? `${diaFormatado} às ${alvoFinal}` : `${diaFormatado}`;
         }
+        
         horarios.forEach(h => {
             const card = document.createElement('div');
             card.className = 'horario-card';
@@ -433,7 +529,7 @@
             if (horarioSelecionadoManual && h === horarioSelecionadoManual) card.classList.add('selecionado');
             card.onclick = () => {
                 horarioSelecionadoManual = (h === proximoAuto || horarioSelecionadoManual === h) ? null : h;
-                limparVibracoes(); ultimoHorarioAlvo = null; gerarLista();
+                limparSinais(); ultimoHorarioAlvo = null; gerarLista();
             };
             listaDiv.appendChild(card);
         });
@@ -455,19 +551,63 @@
         else timerBox.classList.remove('modo-encerrado'); 
         const [h, m] = hAlvo.split(':');
         const alvo = new Date(); alvo.setHours(parseInt(h), parseInt(m), 0, 0);
+        
         timerInterval = setInterval(() => {
             const agora = new Date();
             const diff = alvo - agora;
+            
             if (agora.getMinutes() !== ultimoMinutoRenderizado) { gerarLista(); return; }
+            
             if (isProximoReal && navigator.vibrate) {
                 if (diff <= 180000 && diff > 179000 && !vibrouTresMinutos) { navigator.vibrate([100,100,100,100,100]); vibrouTresMinutos = true; }
                 if (diff <= 60000 && diff > 59000 && !vibrouUmMinuto) { navigator.vibrate([100,100,100]); vibrouUmMinuto = true; }
             }
-            if (diff <= 500) {
-                if (isProximoReal && navigator.vibrate && !vibrouChegada) { navigator.vibrate([500,200,500]); vibrouChegada = true; }
-                display.innerText = "00:00:00"; timerBox.classList.add('modo-encerrado'); clearInterval(timerInterval);
-                horarioSelecionadoManual = null; ultimoHorarioAlvo = null; setTimeout(gerarLista, 1000); return;
+
+            const notifAtiva = document.getElementById('check-notif').checked;
+            const slideVal = parseInt(document.getElementById('range-notif').value);
+            const tempoNotif = slideVal * 60000;
+            
+            if(notifAtiva && isProximoReal && ("serviceWorker" in navigator) && Notification.permission === "granted") {
+                if(diff <= (tempoNotif + 2000) && diff > (tempoNotif - 2000) && !notificouAlerta) {
+                    
+                    let msgNotif = slideVal === 0 
+                        ? `🚍 Veículo das ${hAlvo} saindo!` 
+                        : `⏰ O próximo veículo sai em ${slideVal} min`;
+
+                    navigator.serviceWorker.ready.then(registration => {
+                        registration.showNotification("Vivo Transporte", { 
+                            body: msgNotif, 
+                            icon: "favicon.png",
+                            tag: "alerta-fretado"
+                        });
+                    });
+                    notificouAlerta = true;
+                }
             }
+
+            if (diff <= 0) {
+                if (isProximoReal && navigator.vibrate && !vibrouChegada) { navigator.vibrate([500,200,500]); vibrouChegada = true; }
+                
+                if(notifAtiva && isProximoReal && ("serviceWorker" in navigator) && Notification.permission === "granted" && !notificouPartida) {
+                    navigator.serviceWorker.ready.then(registration => {
+                        registration.showNotification("Bus Partiu", { 
+                            body: `🚍 O veículo das ${hAlvo} partiu`, 
+                            icon: "favicon.png",
+                            tag: "partida-fretado"
+                        });
+                    });
+                    notificouPartida = true;
+                }
+
+                display.innerText = "00:00:00"; 
+                timerBox.classList.add('modo-encerrado'); 
+                clearInterval(timerInterval);
+                horarioSelecionadoManual = null; 
+                ultimoHorarioAlvo = null; 
+                setTimeout(gerarLista, 1000); 
+                return;
+            }
+
             const hrs = Math.floor(diff / 3600000).toString().padStart(2, '0');
             const min = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
             const sec = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
@@ -476,7 +616,7 @@
     }
 
     function copiarLink() {
-        const url = "https://vivo61991-tech.github.io/vivo-horario-fretado/";
+        const url = window.location.origin + window.location.pathname;
         navigator.clipboard.writeText(url).then(() => {
             const toast = document.getElementById('copy-toast');
             toast.style.visibility = 'visible';
@@ -490,8 +630,17 @@
         localStorage.setItem('localidade_base', (p !== "TELEFONICA") ? p : d);
     }
 
-    function limparVibracoes() { vibrouTresMinutos = vibrouUmMinuto = vibrouChegada = false; }
+    function limparSinais() { 
+        vibrouTresMinutos = vibrouUmMinuto = vibrouChegada = false; 
+        notificouAlerta = notificouPartida = false;
+    }
     window.onload = iniciar;
+    
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('Service Worker registrado!', reg))
+            .catch(err => console.error('Erro ao registrar o Service Worker:', err));
+    }
 </script>
 </body>
 </html>

@@ -114,30 +114,27 @@
         .horario-card.proximo-fretado-sempre { background: var(--vivo-green) !important; color: white !important; border: none !important; font-weight: 800 !important; }
         .badge-status { position: absolute; right: 15px; font-size: 0.6rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; }
 
-        /* MENU E OPÇÕES ATUALIZADOS */
         .menu-container { position: fixed; bottom: 25px; right: 25px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; z-index: 2000; }
         .btn-menu-float { width: 56px; height: 56px; background: var(--vivo-purple); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: none; cursor: pointer; }
         .menu-options { display: none; flex-direction: column; gap: 10px; margin-bottom: 5px; }
         
         .menu-options button { 
             background: white; border: 1px solid #ddd; 
-            padding: 14px 24px; /* Aumentado */
+            padding: 14px 24px; 
             border-radius: 25px; 
             font-weight: 800; font-family: 'Inter'; color: var(--vivo-purple); box-shadow: var(--shadow); 
             cursor: pointer; white-space: nowrap; 
-            font-size: 1rem; /* Aumentado */
+            font-size: 1rem; 
             display: flex; align-items: center; gap: 12px; justify-content: flex-start;
         }
         .menu-options button img { width: 22px; height: 22px; object-fit: contain; }
 
-        /* Fundo fosco para o Menu */
         #menu-overlay-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
             z-index: 1999; display: none;
         }
 
-        /* MODAIS E TÍTULOS */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 3000; backdrop-filter: blur(4px); }
         .modal-content { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; box-shadow: var(--shadow); position: relative; }
         
@@ -263,7 +260,7 @@
 </div>
 
 <input type="checkbox" id="check-notif" style="display:none">
-<input type="range" id="range-notif" style="display:none">
+<input type="range" id="range-notif" style="display:none" value="0">
 
 <div id="location-modal" class="modal-overlay" onclick="fecharAoClicarFora(event)">
     <div class="modal-content location-modal-content">
@@ -312,15 +309,17 @@
 
     function abrirModal(id) {
         document.getElementById(id).style.display = 'flex';
-        // Fecha o menu e o fundo fosco do menu ao abrir um modal
         document.getElementById('menu-options').style.display = 'none';
         document.getElementById('menu-overlay-bg').style.display = 'none';
 
         if(id === 'notif-modal') {
-            // Sincroniza valores reais para os temporários do modal
-            document.getElementById('check-notif-temp').checked = document.getElementById('check-notif').checked;
-            document.getElementById('range-notif-temp').value = document.getElementById('range-notif').value;
-            document.getElementById('val-notif-temp').innerText = document.getElementById('range-notif').value + " min";
+            const realCheck = document.getElementById('check-notif');
+            const realRange = document.getElementById('range-notif');
+            
+            document.getElementById('check-notif-temp').checked = realCheck.checked;
+            document.getElementById('range-notif-temp').value = realRange.value;
+            document.getElementById('val-notif-temp').innerText = realRange.value + " min";
+            
             toggleNotifSliderTemp();
 
             if("Notification" in window && Notification.permission !== "granted") {
@@ -337,7 +336,6 @@
         if (e.target.classList.contains('modal-overlay')) e.target.style.display = 'none';
     }
 
-    /* Lógica Temporária das Notificações (Janela) */
     function toggleNotifSliderTemp() {
         const ativo = document.getElementById('check-notif-temp').checked;
         const box = document.getElementById('slider-box-temp');
@@ -346,17 +344,17 @@
     }
 
     function aplicarNotificacao() {
-        // Transfere o que foi escolhido no modal para a lógica real do app
-        document.getElementById('check-notif').checked = document.getElementById('check-notif-temp').checked;
-        document.getElementById('range-notif').value = document.getElementById('range-notif-temp').value;
+        const tempCheck = document.getElementById('check-notif-temp').checked;
+        const tempRange = document.getElementById('range-notif-temp').value;
         
-        // Atualiza o indicador visual do sino no timer principal
-        const ativo = document.getElementById('check-notif').checked;
-        const val = document.getElementById('range-notif').value;
-        document.getElementById('notif-indicator').style.display = ativo ? 'flex' : 'none';
-        document.getElementById('notif-indicator-val').innerText = val + " min";
+        document.getElementById('check-notif').checked = tempCheck;
+        document.getElementById('range-notif').value = tempRange;
         
-        notificouAlerta = false; // Permite nova notificação
+        const indicator = document.getElementById('notif-indicator');
+        indicator.style.display = tempCheck ? 'flex' : 'none';
+        document.getElementById('notif-indicator-val').innerText = tempRange + " min";
+        
+        notificouAlerta = false; 
         fecharModal('notif-modal');
     }
 
@@ -395,7 +393,7 @@
             const l = locais.find(x => x.nome === localizacaoSelecionada);
             const lat = l.latitude;
             const lon = l.longitude;
-            iframe.src = `https://www.google.com/maps?q=${lat},${lon}&z=18&output=embed`;
+            iframe.src = `https://maps.google.com/maps?q=${lat},${lon}&z=18&output=embed`;
         } else {
             iframe.src = `about:blank`;
         }
@@ -607,7 +605,6 @@
             
             if(notifAtiva && isProximoReal && ("serviceWorker" in navigator) && Notification.permission === "granted") {
                 if(diff <= (tempoNotif + 2000) && diff > (tempoNotif - 2000) && !notificouAlerta) {
-                    
                     let msgNotif = slideVal === 0 
                         ? `🚍 Veículo das ${hAlvo} saindo!` 
                         : `⏰ O próximo veículo sai em ${slideVal} min`;
@@ -676,8 +673,8 @@
     
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('Service Worker registrado!', reg))
-            .catch(err => console.error('Erro ao registrar o Service Worker:', err));
+            .then(reg => console.log('SW OK'))
+            .catch(err => console.log('SW Erro', err));
     }
 </script>
 </body>

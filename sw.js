@@ -12,6 +12,7 @@ self.addEventListener('message', event => {
         // O setTimeout dentro do SW é mais estável que na aba, 
         // mas ainda pode ser limitado pelo sistema operativo.
         setTimeout(() => {
+            // Aplica as opções recebidas, incluindo a vibração longa
             self.registration.showNotification(title, options);
         }, delay);
     }

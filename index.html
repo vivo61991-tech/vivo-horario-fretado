@@ -302,6 +302,22 @@
     let ultimoMinutoRenderizado = -1;
     let localizacaoSelecionada = null;
 
+    function enviarAlertaAoServiceWorker(titulo, mensagem, tempoMs) {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+                type: 'SCHEDULE_NOTIFICATION',
+                delay: tempoMs,
+                title: titulo,
+                options: {
+                    body: mensagem,
+                    icon: 'favicon.png',
+                    vibrate: [200, 100, 200],
+                    tag: 'alerta-fretado'
+                }
+            });
+        }
+    }
+
     function redefinirApp() {
         window.scrollTo(0, 0);
         setTimeout(() => {
@@ -620,13 +636,7 @@
                         ? `🚍 Veículo das ${hAlvo} saindo!` 
                         : `⏰ O próximo veículo sai em ${slideVal} min`;
 
-                    navigator.serviceWorker.ready.then(registration => {
-                        registration.showNotification("Vivo Transporte", { 
-                            body: msgNotif, 
-                            icon: "favicon.png",
-                            tag: "alerta-fretado"
-                        });
-                    });
+                    enviarAlertaAoServiceWorker("Vivo Transporte", msgNotif, 0);
                     notificouAlerta = true;
                 }
             }
@@ -635,13 +645,7 @@
                 if (isProximoReal && navigator.vibrate && !vibrouChegada) { navigator.vibrate([500,200,500]); vibrouChegada = true; }
                 
                 if(notifAtiva && isProximoReal && ("serviceWorker" in navigator) && Notification.permission === "granted" && !notificouPartida) {
-                    navigator.serviceWorker.ready.then(registration => {
-                        registration.showNotification("Bus Partiu", { 
-                            body: `🚍 O veículo das ${hAlvo} partiu`, 
-                            icon: "favicon.png",
-                            tag: "partida-fretado"
-                        });
-                    });
+                    enviarAlertaAoServiceWorker("Bus Partiu", `🚍 O veículo das ${hAlvo} partiu`, 0);
                     notificouPartida = true;
                 }
 

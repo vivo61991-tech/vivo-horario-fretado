@@ -9,9 +9,9 @@ const locais = [
   {
     nome: "GRANJA JULIETA",
     endereco: "Rua Alexandre Dumas, 4403",
-    coordenadas: "-23.627820,-46.711355",
-    latitude: -23.627820,
-    longitude: -46.711355
+    coordenadas: "-23.6279132,-46.7110658",
+    latitude: -23.6279132,
+    longitude: -46.7110658
   },
   {
     nome: "TELEFONICA",

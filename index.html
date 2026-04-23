@@ -312,10 +312,10 @@
                     body: mensagem,
                     icon: 'favicon.png',
                     badge: 'favicon.png',
-                    vibrate: [200, 100, 200],
+                    vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40],
                     tag: 'alerta-fretado',
                     renotify: true,
-                    // ADAPTAÇÃO PARA TELA BLOQUEADA NO ANDROID 16
+                    // CORREÇÃO: Força Alta Importância para furar tela bloqueada no Android moderno
                     priority: 'high',
                     importance: 'high'
                 }
@@ -425,7 +425,7 @@
             const l = locais.find(x => x.nome === localizacaoSelecionada);
             const lat = l.latitude;
             const lon = l.longitude;
-            iframe.src = `https://maps.google.com/maps?q=${lat},${lon}&z=18&output=embed`;
+            iframe.src = `https://www.google.com/maps/embed/v1/view?key=YOUR_KEY_HERE&center=${lat},${lon}&zoom=18`;
         } else {
             iframe.src = `about:blank`;
         }

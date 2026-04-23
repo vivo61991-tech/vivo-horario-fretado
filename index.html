@@ -314,7 +314,10 @@
                     badge: 'favicon.png',
                     vibrate: [200, 100, 200],
                     tag: 'alerta-fretado',
-                    renotify: true
+                    renotify: true,
+                    // ADAPTAÇÃO PARA TELA BLOQUEADA NO ANDROID 16
+                    priority: 'high',
+                    importance: 'high'
                 }
             });
         }

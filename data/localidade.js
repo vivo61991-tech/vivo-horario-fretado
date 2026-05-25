@@ -7,9 +7,9 @@ const locais = [
     longitude: -46.6934888
   },
   {
-    nome: "GRANJA JULIETA",
-    endereco: "Rua Alexandre Dumas, 4403",
-    coordenadas: "-23.6285233,-46.7101018",
+    nome: "MORUMBI",
+    endereco: "Av. das Nações Unidas, 14261",
+    coordenadas: "-23.6231229,-46.7026637",
     latitude: -23.6285233,
     longitude: -46.7101018
   },

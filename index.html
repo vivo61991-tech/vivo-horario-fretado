@@ -167,9 +167,13 @@
         .btn-copy { background: var(--vivo-purple); color: white; }
         .btn-close { background: #f5f5f5; color: #666; }
         
-        .location-modal-content { padding: 0; overflow: hidden; max-width: 350px; }
-        #map-container { width: 100%; height: 200px; background: #eee; }
-        .location-list { max-height: 280px; overflow-y: auto; padding: 10px; background: white; }
+        /* Ajustes finos do modal de Localização Dividida (Street View + Mapa) */
+        .location-modal-content { padding: 0; overflow: hidden; max-width: 360px; width: 90%; }
+        .split-view-container { display: flex; flex-direction: column; width: 100%; height: 260px; background: #eee; }
+        .view-frame { flex: 1; width: 100%; height: 50%; border: none; }
+        .street-view-divider { height: 2px; background: var(--vivo-purple); width: 100%; z-index: 5; }
+        
+        .location-list { max-height: 220px; overflow-y: auto; padding: 10px; background: white; }
         .location-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; border-radius: 10px; margin-bottom: 5px; }
         .location-item.selected { background: #f3ebff; border: 2px solid var(--vivo-purple); }
         .location-info { text-align: left; }
@@ -278,8 +282,10 @@
         <div class="modal-header-title" style="padding: 20px 20px 0; margin-bottom: 10px;">
             <img src="img/opcao_localizacao.png"> Localização
         </div>
-        <div id="map-container">
-            <iframe id="map-iframe" width="100%" height="100%" frameborder="0" style="border:0;" allowfullscreen></iframe>
+        <div class="split-view-container">
+            <iframe id="street-view-iframe" class="view-frame" allowfullscreen></iframe>
+            <div class="street-view-divider"></div>
+            <iframe id="map-iframe" class="view-frame" frameborder="0" style="border:0;" allowfullscreen></iframe>
         </div>
         <div class="location-list" id="location-list-container"></div>
         <button class="btn-modal btn-close location-btn-close" onclick="fecharModal('location-modal')">Fechar</button>
@@ -311,7 +317,7 @@
                 options: {
                     body: mensagem,
                     icon: 'favicon.png',
-                    vibrate: [1000], // Vibração longa de 1 segundo adicionada conforme solicitado
+                    vibrate: [1000],
                     tag: 'alerta-fretado',
                     renotify: true
                 }
@@ -412,18 +418,32 @@
             item.onclick = () => renderizarListaLocalidades(localizacaoSelecionada === loc.nome ? null : loc.nome);
             container.appendChild(item);
         });
-        atualizarMapa();
+        atualizarVisualizacaoMapas();
     }
 
-    function atualizarMapa() {
-        const iframe = document.getElementById('map-iframe');
+    /* Nova lógica para extrair as coordenadas reais e o ângulo da nova estrutura da string do Street View */
+    function atualizarVisualizacaoMapas() {
+        const mapIframe = document.getElementById('map-iframe');
+        const streetIframe = document.getElementById('street-view-iframe');
+        
         if (localizacaoSelecionada) {
-            const l = locais.find(x => x.nome === localizacaoSelecionada);
-            const lat = l.latitude;
-            const lon = l.longitude;
-            iframe.src = `https://maps.google.com/maps?q=${lat},${lon}&z=18&output=embed`;
+            const localObj = locais.find(x => x.nome === localizacaoSelecionada);
+            
+            // Tratamento da string: extrai a lat/lng contida após o caractere '@' até a primeira vírgula subsequente
+            // Exemplo original: "@-23.632914,-46.6934889,3a,75y,150.22h,90t" -> vira: "-23.632914,-46.6934889"
+            let coordTratada = localObj.coordenadas.replace('@', '');
+            let partesCoord = coordTratada.split(',');
+            let latLngPura = `${partesCoord[0]},${partesCoord[1]}`;
+            
+            // Montagem do Mapa Urbano Tradicional (Embaixo) baseado na latitude e longitude puras filtradas
+            mapIframe.src = `https://maps.google.com/maps?q=${latLngPura}&t=&z=17&ie=UTF8&iwloc=&output=embed`;
+            
+            // Montagem do Street View Dinâmico (Em cima) usando o link oficial de incorporação avançada com os parâmetros passados
+            // cbll recebe a lat,long coletada e o parâmetro sspn/heading ajusta a rotação nativa da câmera
+            streetIframe.src = `https://maps.google.com/maps?layer=c&cbll=${latLngPura}&cbp=12,0,0,0,0&source=browser&output=svembed`;
         } else {
-            iframe.src = `about:blank`;
+            mapIframe.src = `about:blank`;
+            streetIframe.src = `about:blank`;
         }
     }
 

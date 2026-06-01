@@ -3,6 +3,7 @@ const FERIADOS_FIXOS = [
     "01-25", // Aniversário de São Paulo
     "04-21", // Tiradentes
     "05-01", // Dia do Trabalho
+    "06-04", // Corpus Christi
     "07-09", // Revolução Constitucionalista
     "09-07", // Independência do Brasil
     "10-12", // Nossa Senhora Aparecida

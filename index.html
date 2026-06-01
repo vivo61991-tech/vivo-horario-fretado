@@ -63,6 +63,7 @@
             width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
             font-size: 1.1rem; color: var(--vivo-purple); cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10; 
         }
+        .btn-inverter img { width: 100%; height: 100%; object-fit: contain; }
 
         .row { display: flex; gap: 10px; }
 
@@ -98,11 +99,11 @@
 
         #notif-indicator { 
             position: absolute; top: 12px; right: 15px; 
-            display: none; flex-direction: column; align-items: center;
+            display: flex; flex-direction: column; align-items: center;
             cursor: pointer;
         }
 
-        #notif-indicator span:first-child { font-size: 1.2rem; filter: brightness(0) invert(1); line-height: 1; }
+        #notif-indicator img { width: 22px; height: 22px; object-fit: contain; }
         #notif-indicator-val { font-size: 0.6rem; font-weight: 600; opacity: 0.9; margin-top: 2px; }
 
         .timer-container.modo-real { background: linear-gradient(135deg, #82ad2b, var(--vivo-green)) !important; }
@@ -124,6 +125,16 @@
         .horario-card.selecionado { border: 2.5px solid var(--vivo-purple); background: #f3ebff; color: var(--vivo-purple); }
         .horario-card.proximo-fretado-sempre { background: var(--vivo-green) !important; color: white !important; border: none !important; font-weight: 800 !important; }
         .badge-status { position: absolute; right: 15px; font-size: 0.6rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; }
+        
+        /* Nova classe estilizada para os índices marginais à esquerda com efeito marca d'água */
+        .card-index { 
+            position: absolute; 
+            left: 15px; 
+            font-size: 0.85rem; 
+            font-weight: 600; 
+            color: inherit; 
+            opacity: 0.3; /* Deixa o indicador como marca d'água por padrão */
+        }
 
         .menu-container { position: fixed; bottom: 25px; right: 25px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; z-index: 2000; }
         .btn-menu-float { width: 56px; height: 56px; background: var(--vivo-purple); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: none; cursor: pointer; }
@@ -198,7 +209,7 @@
             <span class="label-select">▲ Embarque</span>
             <select id="select-partida" onchange="resetECarregar()"></select>
         </div>
-        <button class="btn-inverter" onclick="inverterSelecao()">⇆</button>
+        <button class="btn-inverter" onclick="inverterSelecao()"><img src="img/bt_transicao.png" alt="Inverter"></button>
         <div class="select-wrapper">
             <span class="label-select" style="text-align: right; margin-right: 4px;">Desembarque ▼</span>
             <select id="select-destino" onchange="resetECarregar()"></select>
@@ -212,8 +223,8 @@
 
 <div id="timer-box" class="timer-container">
     <div id="notif-indicator" onclick="abrirModal('notif-modal')">
-        <span>🔔</span>
-        <span id="notif-indicator-val">0 min</span>
+        <img id="notif-icon-img" src="img/bt_notification_off.png" alt="Notificação">
+        <span id="notif-indicator-val">off</span>
     </div> 
     <div class="timer-label" id="timer-status">Próximo Horário:</div>
     <span id="data-hora-info" style="display: block; font-size: 0.9rem; margin-top: 5px; opacity: 0.9;"></span>
@@ -315,7 +326,7 @@
                 delay: tempoMs,
                 title: titulo,
                 options: {
-                    body: mensagem,
+                    body: messaging,
                     icon: 'favicon.png',
                     vibrate: [1000],
                     tag: 'alerta-fretado',
@@ -384,18 +395,23 @@
         document.getElementById('check-notif').checked = tempCheck;
         document.getElementById('range-notif').value = tempRange;
         
-        const indicator = document.getElementById('notif-indicator');
-        indicator.style.display = tempCheck ? 'flex' : 'none';
-        document.getElementById('notif-indicator-val').innerText = tempRange + " min";
+        const notifIconImg = document.getElementById('notif-icon-img');
+        if (tempCheck) {
+            notifIconImg.src = "img/bt_notification_on.png";
+            document.getElementById('notif-indicator-val').innerText = tempRange + " min";
+        } else {
+            notifIconImg.src = "img/bt_notification_off.png";
+            document.getElementById('notif-indicator-val').innerText = "off";
+        }
         
         notificouAlerta = false; 
         fecharModal('notif-modal');
     }
 
     function abrirLocalizacao() {
-        const atual = document.getElementById('select-partida').value;
+        const abrir_local = document.getElementById('select-partida').value;
         abrirModal('location-modal');
-        renderizarListaLocalidades(atual);
+        renderizarListaLocalidades(abrir_local);
     }
 
     function renderizarListaLocalidades(selecionado) {
@@ -421,7 +437,6 @@
         atualizarVisualizacaoMapas();
     }
 
-    /* Nova lógica para extrair as coordenadas reais e o ângulo da nova estrutura da string do Street View */
     function atualizarVisualizacaoMapas() {
         const mapIframe = document.getElementById('map-iframe');
         const streetIframe = document.getElementById('street-view-iframe');
@@ -429,17 +444,11 @@
         if (localizacaoSelecionada) {
             const localObj = locais.find(x => x.nome === localizacaoSelecionada);
             
-            // Tratamento da string: extrai a lat/lng contida após o caractere '@' até a primeira vírgula subsequente
-            // Exemplo original: "@-23.632914,-46.6934889,3a,75y,150.22h,90t" -> vira: "-23.632914,-46.6934889"
             let coordTratada = localObj.coordenadas.replace('@', '');
             let partesCoord = coordTratada.split(',');
             let latLngPura = `${partesCoord[0]},${partesCoord[1]}`;
             
-            // Montagem do Mapa Urbano Tradicional (Embaixo) baseado na latitude e longitude puras filtradas
             mapIframe.src = `https://maps.google.com/maps?q=${latLngPura}&t=&z=17&ie=UTF8&iwloc=&output=embed`;
-            
-            // Montagem do Street View Dinâmico (Em cima) usando o link oficial de incorporação avançada com os parâmetros passados
-            // cbll recebe a lat,long coletada e o parâmetro sspn/heading ajusta a rotação nativa da câmera
             streetIframe.src = `https://maps.google.com/maps?layer=c&cbll=${latLngPura}&cbp=12,0,0,0,0&source=browser&output=svembed`;
         } else {
             mapIframe.src = `about:blank`;
@@ -575,26 +584,44 @@
         const infoDH = document.getElementById('data-hora-info');
         const diaFormatado = dataInput.split('-').slice(1).reverse().join('/');
         
+        // Mapeia os índices do alvo e o total para exibição no timer
+        const totalHorarios = horarios.length;
+        const indiceAlvo = alvoFinal ? (horarios.indexOf(alvoFinal) + 1) : 0;
+        const sufixoContador = totalHorarios > 0 && indiceAlvo > 0 ? ` ${indiceAlvo}/${totalHorarios}` : "";
+
         if (ehHoje) {
             if (horarioSelecionadoManual && horarioSelecionadoManual !== proximoAuto) {
                 timerBox.classList.remove('modo-real');
-                document.getElementById('timer-status').innerText = "Horário Selecionado:";
+                document.getElementById('timer-status').innerText = "Horário Selecionado:" + sufixoContador;
                 infoDH.innerText = `${diaFormatado} às ${horarioSelecionadoManual}`;
             } else {
                 timerBox.classList.add('modo-real');
-                document.getElementById('timer-status').innerText = "Próximo Horário:";
+                document.getElementById('timer-status').innerText = "Próximo Horário:" + sufixoContador;
                 infoDH.innerText = ""; 
             }
         } else {
             timerBox.classList.remove('modo-real');
-            document.getElementById('timer-status').innerText = "Horário Selecionado:";
+            document.getElementById('timer-status').innerText = "Horário Selecionado:" + sufixoContador;
             infoDH.innerText = alvoFinal ? `${diaFormatado} às ${alvoFinal}` : `${diaFormatado}`;
         }
         
-        horarios.forEach(h => {
+        horarios.forEach((h, index) => {
             const card = document.createElement('div');
             card.className = 'horario-card';
             card.innerText = h;
+            
+            // Inserção do indicador de número sequencial do lado esquerdo do card
+            const idxSpan = document.createElement('span');
+            idxSpan.className = 'card-index';
+            idxSpan.innerText = index + 1;
+
+            // Altera a opacidade para 1 apenas se o item correspondente estiver selecionado/ativo
+            if ((h === alvoFinal && ehHoje) || (!ehHoje && h === horarioSelecionadoManual)) {
+                idxSpan.style.opacity = "1";
+            }
+            
+            card.appendChild(idxSpan);
+
             const [hr, min] = h.split(':');
             const hV = new Date(agoraOriginal.getFullYear(), agoraOriginal.getMonth(), agoraOriginal.getDate(), parseInt(hr), parseInt(min), 0, 0);
             if (ehHoje && hV <= agoraLimpo) card.classList.add('passado');

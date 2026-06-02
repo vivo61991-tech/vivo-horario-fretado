@@ -5,16 +5,17 @@ self.addEventListener('activate', event => event.waitUntil(clients.claim()));
 // Escuta mensagens enviadas pelo index.html
 self.addEventListener('message', event => {
     if (event.data && event.data.type === 'SCHEDULE_NOTIFICATION') {
-        const delay = event.data.delay;
-        const title = event.data.title;
-        const options = event.data.options;
+        const { delay, title, options } = event.data;
 
-        // O setTimeout dentro do SW é mais estável que na aba, 
-        // mas ainda pode ser limitado pelo sistema operativo.
-        setTimeout(() => {
-            // Aplica as opções recebidas, incluindo a vibração longa
-            self.registration.showNotification(title, options);
-        }, delay);
+        // Garante a estabilidade do ciclo de vida usando event.waitUntil
+        event.waitUntil(
+            new Promise(resolve => {
+                setTimeout(() => {
+                    self.registration.showNotification(title, options);
+                    resolve();
+                }, delay);
+            })
+        );
     }
 });
 

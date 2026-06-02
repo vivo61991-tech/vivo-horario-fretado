@@ -1,8 +1,11 @@
 {
   "name": "Vivo - Fretados",
   "short_name": "Fretados",
-  "start_url": ".",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
+  "background_color": "#642A90",
+  "theme_color": "#642A90",
   "icons": [
     {
       "src": "favicon.png",

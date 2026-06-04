@@ -182,6 +182,7 @@ const HORARIOS_DATA = [
   { "horario": "12:30", "partida": "MORUMBI", "destino": "TELEFONICA", "dia": "Dia Útil" },
   { "horario": "12:45", "partida": "MORUMBI", "destino": "TELEFONICA", "dia": "Dia Útil" },
   { "horario": "13:00", "partida": "MORUMBI", "destino": "TELEFONICA", "dia": "Dia Útil" },
+  { "horario": "13:25", "partida": "MORUMBI", "destino": "TELEFONICA", "dia": "Dia Útil" },
   { "horario": "13:40", "partida": "MORUMBI", "destino": "TELEFONICA", "dia": "Dia Útil" },
   { "horario": "13:55", "partida": "MORUMBI", "destino": "TELEFONICA", "dia": "Dia Útil" },
   { "horario": "14:10", "partida": "MORUMBI", "destino": "TELEFONICA", "dia": "Dia Útil" },

@@ -172,6 +172,22 @@
         input[type="range"] { width: 100%; accent-color: var(--vivo-purple); margin: 15px 0; }
         .slider-label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 800; color: var(--vivo-purple); }
 
+        /* Seção de vibração */
+        .vibr-section { margin-top: 18px; border-top: 1px solid #eee; padding-top: 14px; opacity: 0.4; pointer-events: none; transition: 0.3s; }
+        .vibr-section.active { opacity: 1; pointer-events: auto; }
+        .vibr-section-title { font-size: 0.7rem; font-weight: 800; color: var(--vivo-purple); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        .vibr-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .vibr-label { font-size: 0.78rem; font-weight: 600; color: var(--text-main); flex: 0 0 95px; }
+        .vibr-controls { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .vibr-qty-row { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+        .vibr-qty-row input[type="range"] { margin: 0; flex: 1; min-width: 0; }
+        .vibr-qty-val { font-size: 0.75rem; font-weight: 700; color: var(--vivo-purple); min-width: 12px; text-align: center; }
+        .vibr-type-toggle { display: flex; border-radius: 8px; overflow: hidden; outline: 1.5px solid var(--vivo-purple); flex-shrink: 0; }
+        .vibr-type-toggle button { border: none; background: white; color: var(--vivo-purple); font-size: 0.7rem; font-weight: 700; font-family: 'Inter', sans-serif; padding: 5px 10px; cursor: pointer; transition: background 0.2s, color 0.2s; line-height: 1; }
+        .vibr-type-toggle button + button { border-left: 1.5px solid var(--vivo-purple); }
+        .vibr-type-toggle button.sel { background: var(--vivo-purple); color: white; }
+        .vibr-only-row { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 12px; border-top: 1px solid #eee; font-size: 0.8rem; font-weight: 600; color: var(--text-main); }
+
         .btn-modal { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 600; margin-top: 10px; cursor: pointer; font-size: 0.9rem; font-family: 'Inter', sans-serif; }
         .btn-aplicar { background: var(--vivo-green); color: white; }
         .btn-copy { background: var(--vivo-purple); color: white; }
@@ -255,15 +271,16 @@
 </div>
 
 <div id="notif-modal" class="modal-overlay" onclick="fecharAoClicarFora(event)">
-    <div class="modal-content">
+    <div class="modal-content" style="max-height: 90dvh; overflow-y: auto;">
         <div class="modal-header-title">
             <img src="img/opcao_notificacao.png"> Notificação
         </div>
         <div class="notification-config">
+            <!-- Ativar notificação sonora -->
             <div class="notif-row">
                 <span style="font-weight: 700; color: var(--text-main);">Ativar Notificações</span>
                 <label class="feriado-toggle" style="flex: none; border: none; padding: 0; height: auto; background: transparent;">
-                    <input type="checkbox" id="check-notif-temp" onchange="toggleNotifSliderTemp()">
+                    <input type="checkbox" id="check-notif-temp" onchange="toggleNotifConfigTemp()">
                 </label>
             </div>
             <div id="slider-box-temp" class="slider-container">
@@ -277,14 +294,64 @@
                     <span>10 min</span>
                 </div>
             </div>
+
+            <!-- Configuração de vibração -->
+            <div id="vibr-section-temp" class="vibr-section">
+                <div class="vibr-section-title">Vibração</div>
+
+                <!-- Tempo restante -->
+                <div class="vibr-row">
+                    <span class="vibr-label">Tempo restante</span>
+                    <div class="vibr-controls">
+                        <div class="vibr-qty-row">
+                            <input type="range" id="vibr-alerta-qty" min="1" max="3" value="2" step="1"
+                                oninput="document.getElementById('vibr-alerta-qty-val').innerText = this.value">
+                            <span class="vibr-qty-val" id="vibr-alerta-qty-val">2</span>
+                            <div class="vibr-type-toggle">
+                                <button id="vibr-alerta-curta" class="sel" onclick="setVibrType('alerta','curta')">Curta</button>
+                                <button id="vibr-alerta-longa" onclick="setVibrType('alerta','longa')">Longa</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Veículo partindo -->
+                <div class="vibr-row">
+                    <span class="vibr-label">Veículo partindo</span>
+                    <div class="vibr-controls">
+                        <div class="vibr-qty-row">
+                            <input type="range" id="vibr-partida-qty" min="1" max="3" value="2" step="1"
+                                oninput="document.getElementById('vibr-partida-qty-val').innerText = this.value">
+                            <span class="vibr-qty-val" id="vibr-partida-qty-val">2</span>
+                            <div class="vibr-type-toggle">
+                                <button id="vibr-partida-curta" onclick="setVibrType('partida','curta')">Curta</button>
+                                <button id="vibr-partida-longa" class="sel" onclick="setVibrType('partida','longa')">Longa</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Apenas vibração -->
+                <div class="vibr-only-row">
+                    <span>Apenas vibração (sem som)</span>
+                    <label class="feriado-toggle" style="flex: none; border: none; padding: 0; height: auto; background: transparent;">
+                        <input type="checkbox" id="check-vibr-only-temp">
+                    </label>
+                </div>
+            </div>
         </div>
-        <button class="btn-modal btn-aplicar" onclick="aplicarNotificacao()">Aplicar</button>
+        <button class="btn-modal btn-aplicar" onclick="aplicarNotificacao()" style="margin-top: 18px;">Aplicar</button>
         <button class="btn-modal btn-close" onclick="fecharModal('notif-modal')">Fechar</button>
     </div>
 </div>
 
 <input type="checkbox" id="check-notif" style="display:none">
 <input type="range" id="range-notif" style="display:none" value="0">
+<input type="hidden" id="vibr-alerta-qty-real" value="2">
+<input type="hidden" id="vibr-alerta-tipo-real" value="curta">
+<input type="hidden" id="vibr-partida-qty-real" value="2">
+<input type="hidden" id="vibr-partida-tipo-real" value="longa">
+<input type="checkbox" id="check-vibr-only" style="display:none">
 
 <div id="location-modal" class="modal-overlay" onclick="fecharAoClicarFora(event)">
     <div class="modal-content location-modal-content">
@@ -317,23 +384,86 @@
     let ultimoMinutoRenderizado = -1;
     let localizacaoSelecionada = null;
 
-    function enviarAlertaAoServiceWorker(titulo, mensagem, tempoMs) {
+    // Gera padrão de vibração conforme config do usuário
+    function getVibrPattern(tipo, qty) {
+        const curta = 120;
+        const longa = 500;
+        const pausa = 150;
+        const dur = tipo === 'longa' ? longa : curta;
+        const pattern = [];
+        for (let i = 0; i < qty; i++) {
+            pattern.push(dur);
+            if (i < qty - 1) pattern.push(pausa);
+        }
+        return pattern;
+    }
+    let wakeLock = null;
+
+    async function ativarWakeLock() {
+        if (!('wakeLock' in navigator)) return;
+        try {
+            if (wakeLock) return; // já ativo
+            wakeLock = await navigator.wakeLock.request('screen');
+            wakeLock.addEventListener('release', () => { wakeLock = null; });
+        } catch (e) { /* ignora se bloqueado pelo SO */ }
+    }
+
+    async function liberarWakeLock() {
+        if (wakeLock) {
+            await wakeLock.release().catch(() => {});
+            wakeLock = null;
+        }
+    }
+
+    // Reativa o wake lock quando o usuário volta para a aba
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && timerAtivo) ativarWakeLock();
+    });
+
+    // ── Notificações via Service Worker ────────────────────────────────────────
+    function enviarAlertaAoServiceWorker(titulo, mensagem, tempoMs, idNotif) {
         if (!('serviceWorker' in navigator)) return;
 
-        navigator.serviceWorker.ready.then(registration => {
-            registration.active.postMessage({
+        // Fallback direto caso SW não esteja disponível
+        if (Notification.permission === 'granted' && tempoMs === 0) {
+            try {
+                new Notification(titulo, {
+                    body: mensagem,
+                    icon: 'favicon.png',
+                    tag: 'alerta-fretado',
+                    renotify: true
+                });
+            } catch(e) {}
+        }
+
+        navigator.serviceWorker.ready.then(reg => {
+            if (!reg.active) return;
+            reg.active.postMessage({
                 type: 'SCHEDULE_NOTIFICATION',
+                id: idNotif || 'alerta-fretado',
                 delay: tempoMs,
                 title: titulo,
                 options: {
                     body: mensagem,
                     icon: 'favicon.png',
-                    vibrate: [1000],
+                    badge: 'favicon.png',
+                    vibrate: [200, 100, 200, 100, 200],
                     tag: 'alerta-fretado',
-                    renotify: true
+                    renotify: true,
+                    requireInteraction: false,
+                    silent: false,
+                    timestamp: Date.now() + tempoMs
                 }
             });
-        });
+        }).catch(() => {});
+    }
+
+    function cancelarNotificacaoAgendada() {
+        if (!('serviceWorker' in navigator)) return;
+        navigator.serviceWorker.ready.then(reg => {
+            if (!reg.active) return;
+            reg.active.postMessage({ type: 'CANCEL_NOTIFICATION', id: 'alerta-fretado' });
+        }).catch(() => {});
     }
 
     function redefinirApp() {
@@ -360,14 +490,33 @@
         if(id === 'notif-modal') {
             const realCheck = document.getElementById('check-notif');
             const realRange = document.getElementById('range-notif');
-            
-            document.getElementById('check-notif-temp').checked = realCheck.checked;
-            document.getElementById('range-notif-temp').value = realRange.value;
-            document.getElementById('val-notif-temp').innerText = realRange.value + " min";
-            
-            toggleNotifSliderTemp();
+            const notifOn   = realCheck.checked;
+            const vibrOnly  = document.getElementById('check-vibr-only').checked;
 
-            if("Notification" in window && Notification.permission !== "granted") {
+            document.getElementById('check-notif-temp').checked     = notifOn;
+            document.getElementById('range-notif-temp').value       = realRange.value;
+            document.getElementById('val-notif-temp').innerText     = realRange.value + " min";
+            document.getElementById('check-vibr-only-temp').checked = vibrOnly;
+
+            // Restaura configurações de vibração salvas
+            const aqt = document.getElementById('vibr-alerta-qty-real').value;
+            const att = document.getElementById('vibr-alerta-tipo-real').value;
+            const pqt = document.getElementById('vibr-partida-qty-real').value;
+            const ptt = document.getElementById('vibr-partida-tipo-real').value;
+
+            document.getElementById('vibr-alerta-qty').value  = aqt;
+            document.getElementById('vibr-alerta-qty-val').innerText = aqt;
+            document.getElementById('vibr-partida-qty').value = pqt;
+            document.getElementById('vibr-partida-qty-val').innerText = pqt;
+            setVibrType('alerta',  att);
+            setVibrType('partida', ptt);
+            vibrTipoTemp = { alerta: att, partida: ptt };
+
+            // Visibilidade das seções
+            document.getElementById('slider-box-temp').classList.toggle('active', notifOn || vibrOnly);
+            document.getElementById('vibr-section-temp').classList.toggle('active', notifOn || vibrOnly);
+
+            if("Notification" in window && Notification.permission !== "granted" && notifOn) {
                 Notification.requestPermission().then(permission => {
                     console.log("Permissão:", permission);
                 });
@@ -383,27 +532,71 @@
         if (e.target.classList.contains('modal-overlay')) e.target.style.display = 'none';
     }
 
-    function toggleNotifSliderTemp() {
-        const ativo = document.getElementById('check-notif-temp').checked;
-        const box = document.getElementById('slider-box-temp');
-        if(ativo) box.classList.add('active');
-        else box.classList.remove('active');
+    // Estado temporário dos tipos de vibração no modal
+    let vibrTipoTemp = { alerta: 'curta', partida: 'longa' };
+
+    function setVibrType(alvo, tipo) {
+        vibrTipoTemp[alvo] = tipo;
+        ['curta','longa'].forEach(t => {
+            const btn = document.getElementById(`vibr-${alvo}-${t}`);
+            if (btn) btn.classList.toggle('sel', t === tipo);
+        });
     }
+
+    function toggleNotifConfigTemp() {
+        const ativo    = document.getElementById('check-notif-temp').checked;
+        const vibrOnly = document.getElementById('check-vibr-only-temp').checked;
+        // Antecedência: ativa quando notificação sonora OU apenas vibração está on
+        document.getElementById('slider-box-temp').classList.toggle('active', ativo || vibrOnly);
+        document.getElementById('vibr-section-temp').classList.toggle('active', ativo || vibrOnly);
+        // Se ativou notificação, força defaults de vibração e desmarca vibrOnly
+        if (ativo) {
+            document.getElementById('vibr-alerta-qty').value = 2;
+            document.getElementById('vibr-alerta-qty-val').innerText = '2';
+            document.getElementById('vibr-partida-qty').value = 2;
+            document.getElementById('vibr-partida-qty-val').innerText = '2';
+            setVibrType('alerta', 'curta');
+            setVibrType('partida', 'longa');
+            document.getElementById('check-vibr-only-temp').checked = false;
+            // Com notificação on e vibrOnly false, antecedência fica ativa
+            document.getElementById('slider-box-temp').classList.add('active');
+        }
+    }
+
+    // Ativar/desativar vibr-section quando "apenas vibração" muda
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('check-vibr-only-temp').addEventListener('change', function() {
+            const notifOn   = document.getElementById('check-notif-temp').checked;
+            const vibrOnly  = this.checked;
+            document.getElementById('vibr-section-temp').classList.toggle('active', notifOn || vibrOnly);
+            // Antecedência ativa se notificação sonora OU apenas vibração estiver on
+            document.getElementById('slider-box-temp').classList.toggle('active', notifOn || vibrOnly);
+        });
+    });
+
+    function toggleNotifSliderTemp() { toggleNotifConfigTemp(); } // compatibilidade
 
     function aplicarNotificacao() {
         const tempCheck = document.getElementById('check-notif-temp').checked;
         const tempRange = document.getElementById('range-notif-temp').value;
-        
+        const vibrOnly  = document.getElementById('check-vibr-only-temp').checked;
+
         document.getElementById('check-notif').checked = tempCheck;
-        document.getElementById('range-notif').value = tempRange;
-        
+        document.getElementById('range-notif').value   = tempRange;
+        document.getElementById('check-vibr-only').checked = vibrOnly;
+
+        document.getElementById('vibr-alerta-qty-real').value  = document.getElementById('vibr-alerta-qty').value;
+        document.getElementById('vibr-alerta-tipo-real').value = vibrTipoTemp.alerta;
+        document.getElementById('vibr-partida-qty-real').value  = document.getElementById('vibr-partida-qty').value;
+        document.getElementById('vibr-partida-tipo-real').value = vibrTipoTemp.partida;
+
         const notifIconImg = document.getElementById('notif-icon-img');
         if (tempCheck) {
             notifIconImg.src = "img/bt_notification_on.png";
             document.getElementById('notif-indicator-val').innerText = tempRange + " min";
         } else {
             notifIconImg.src = "img/bt_notification_off.png";
-            document.getElementById('notif-indicator-val').innerText = "off";
+            document.getElementById('notif-indicator-val').innerText = vibrOnly ? "vibr" : "off";
         }
         
         notificouAlerta = false; 
@@ -647,9 +840,12 @@
         iniciarContagem(alvoFinal, diffDias, (ehHoje && (!horarioSelecionadoManual || horarioSelecionadoManual === proximoAuto)));
     }
 
+    let timerAtivo = false;
     let timerInterval;
     function iniciarContagem(hAlvo, diffDias, isProximoReal) {
         clearInterval(timerInterval);
+        timerAtivo = false;
+        liberarWakeLock();
         const display = document.getElementById('countdown');
         const timerBox = document.getElementById('timer-box'); 
         if (diffDias !== 0) {
@@ -661,6 +857,9 @@
         else timerBox.classList.remove('modo-encerrado'); 
         const [h, m] = hAlvo.split(':');
         const alvo = new Date(); alvo.setHours(parseInt(h), parseInt(m), 0, 0);
+
+        timerAtivo = true;
+        ativarWakeLock();
         
         timerInterval = setInterval(() => {
             const agora = new Date();
@@ -677,32 +876,44 @@
                 if (diff <= 60000 && diff > 59000 && !vibrouUmMinuto) { navigator.vibrate([100,100,100]); vibrouUmMinuto = true; }
             }
 
-            const notifAtiva = document.getElementById('check-notif').checked;
-            const slideVal = parseInt(document.getElementById('range-notif').value);
-            const tempoNotif = slideVal * 60000;
+            const notifAtiva  = document.getElementById('check-notif').checked;
+            const vibrOnly    = document.getElementById('check-vibr-only').checked;
+            const slideVal    = parseInt(document.getElementById('range-notif').value);
+            const tempoNotif  = slideVal * 60000;
+            const alertaQty   = parseInt(document.getElementById('vibr-alerta-qty-real').value);
+            const alertaTipo  = document.getElementById('vibr-alerta-tipo-real').value;
+            const partidaQty  = parseInt(document.getElementById('vibr-partida-qty-real').value);
+            const partidaTipo = document.getElementById('vibr-partida-tipo-real').value;
             
-            if(notifAtiva && isProximoReal && ("serviceWorker" in navigator) && Notification.permission === "granted") {
-                if(diff <= (tempoNotif + 2000) && diff > (tempoNotif - 2000) && !notificouAlerta) {
+            const deveNotificar = notifAtiva && ("serviceWorker" in navigator) && Notification.permission === "granted";
+            const deveVibrar    = (notifAtiva || vibrOnly) && navigator.vibrate;
+
+            if(isProximoReal && diff <= (tempoNotif + 2000) && diff > (tempoNotif - 2000) && !notificouAlerta) {
+                if (deveVibrar) navigator.vibrate(getVibrPattern(alertaTipo, alertaQty));
+                if (deveNotificar && !vibrOnly) {
                     let msgNotif = slideVal === 0 
                         ? `🚍 Veículo das ${hAlvo} saindo!` 
                         : `⏰ O próximo veículo sai em ${slideVal} min`;
-
-                    enviarAlertaAoServiceWorker("Vivo Transporte", msgNotif, 0);
-                    notificouAlerta = true;
+                    enviarAlertaAoServiceWorker("Vivo Transporte", msgNotif, 0, 'alerta-antecedencia');
                 }
+                notificouAlerta = true;
             }
 
             if (diff <= 0) {
-                if (isProximoReal && navigator.vibrate && !vibrouChegada) { navigator.vibrate([500,200,500]); vibrouChegada = true; }
-                
-                if(notifAtiva && isProximoReal && ("serviceWorker" in navigator) && Notification.permission === "granted" && !notificouPartida) {
-                    enviarAlertaAoServiceWorker("Bus Partiu", `🚍 O veículo das ${hAlvo} partiu`, 0);
+                if (isProximoReal && !vibrouChegada) {
+                    if (deveVibrar) navigator.vibrate(getVibrPattern(partidaTipo, partidaQty));
+                    vibrouChegada = true;
+                }
+                if(isProximoReal && deveNotificar && !vibrOnly && !notificouPartida) {
+                    enviarAlertaAoServiceWorker("Bus Partiu", `🚍 O veículo das ${hAlvo} partiu`, 0, 'alerta-partida');
                     notificouPartida = true;
                 }
 
                 display.innerText = "00:00:00"; 
                 timerBox.classList.add('modo-encerrado'); 
                 clearInterval(timerInterval);
+                timerAtivo = false;
+                liberarWakeLock();
                 horarioSelecionadoManual = null; 
                 ultimoHorarioAlvo = null; 
                 setTimeout(gerarLista, 1000); 
@@ -734,6 +945,7 @@
     function limparSinais() { 
         vibrouTresMinutos = vibrouUmMinuto = vibrouChegada = false; 
         notificouAlerta = notificouPartida = false;
+        cancelarNotificacaoAgendada();
     }
     window.onload = iniciar;
     
